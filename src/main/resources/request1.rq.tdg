@@ -1,22 +1,26 @@
 
-    request 100 Customer including () 
+    request 100 Customer including ()
     specific (
-    	Customer where age > 21 with 
-    	(Purchase where date > 1999/12/31 with 
+    	Customer where age > 21 with
+    	(Purchase where date > 1999/12/31 with
     		PurchaseItem where price > 20.25 and qty = 1 and
-    	Purchase where date < 1999/12/31 with 
-    		PurchaseItem where price > 25.75 and qty = 1 		
-    	)  and 
-    	Customer where age < 16 with 
-    	(Purchase where date > 1999/12/31 with 
+    	Purchase where date < 1999/12/31 with
+    		PurchaseItem where price > 25.75 and qty = 1
+    	)  and
+    	Customer where age < 16 with
+    	(Purchase where date > 1999/12/31 with
     		PurchaseItem where price > 20.25 and qty = 1 and
-    	Purchase where date < 1999/12/31 with 
-    		PurchaseItem where price > 25.75 and qty = 1 		
+    	Purchase where date < 1999/12/31 with
+    		PurchaseItem where price > 25.75 and qty = 1
+    		    postProcess (
+              assure SUM(enters) = SUM (exits) GROUP BY (deviceId, siteId)
+            )
+
     	)
-    
+
     )
-    
-    
+
+
 Customer                                   Purchase                                    PurchaseItem
 =========================================================================================================
  id=cl, age=?

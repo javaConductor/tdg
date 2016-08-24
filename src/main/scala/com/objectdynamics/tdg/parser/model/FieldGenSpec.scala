@@ -112,8 +112,7 @@ case class FieldGenConstraints(fieldName: String, fldGenSpecs: List[FieldGenCons
     {
 
 
-        fldGenSpecs.find
-        {
+        fldGenSpecs.find {
             (fldGenConstraint: FieldGenConstraint) => fldGenConstraint match
             {
                 case EqSpec(value: String) => true

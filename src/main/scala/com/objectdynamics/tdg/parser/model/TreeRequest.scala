@@ -6,6 +6,7 @@ case class TreeRequest(dataSetName: String,
                        rows: Long,
                        fieldConstraints: Map[String, FieldGenConstraints], // where clause
                        referenceName: Option[String],
+                       postProcesses: List[PostProcess],
                        symbolicName: Option[String],
                        subTrees: List[TreeRequest], // with clause
                        unique:    Boolean = false)
@@ -25,3 +26,6 @@ case class TreeRequest(dataSetName: String,
     }
 
 }
+
+sealed trait PostProcess;
+ case class Assure(expression: String) extends PostProcess;

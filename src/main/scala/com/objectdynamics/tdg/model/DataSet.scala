@@ -1,10 +1,6 @@
 package com.objectdynamics.tdg.model
 
-//import com.objectdynamics.tdg.objectgraph.datatypes.DataType
-
-import java.util._
-
-import scala._
+import scala.List
 import com.objectdynamics.tdg.builder.model._
 import com.objectdynamics.tdg.util.LogContributor
 
@@ -12,7 +8,7 @@ import com.objectdynamics.tdg.util.LogContributor
  * This class represents a Table in a RDBS or Collection in NO-SQL Data Store.
  */
 case class DataSet(dataObjSpec: IDataSetSpec,
-                   dataRows: List[IDataRow])
+                   dataRows: scala.List[IDataRow])
   extends IDataSet with LogContributor
 {
 
