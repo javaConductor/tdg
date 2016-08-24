@@ -1,0 +1,90 @@
+[
+    {
+        "dataSetType": "rdbms",
+        "name": "Employee",
+        "options": {},
+        "fields": [
+            {
+                "name": "id",
+                "type":"Integer",
+                "PK":"true",
+                "generator":"autoIncrement"
+            },
+            {
+                "name": "fname",
+                "type":"String",
+                "maxLength":30,
+                "generator":"rotateStringWithSequence",
+                "data":["Billy","Willie","Pamela"]
+            },
+            {
+                "name":"lname",
+                "like":"fname",
+                "data":["Smith","O'Leary","Riley","Jones"]
+            },
+            {
+                "name":"reportsTo",
+                "type":"Integer",
+                "foreignRef" : {
+                    "dataSetName":"Employee",
+                    "fieldName":"id",
+                    "disbursementSpec": {
+                        "ratio": [1,1]
+                    }
+                }
+            },
+            {
+                "name":"deptId",
+                "type":"Integer",
+                "foreignRef" : {
+                    "dataSetName":"Department",
+                    "fieldName":"id",
+                    "disbursementSpec": {
+                        "percentages":[30,30,30,10]
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "dataSetType": "rdbms",
+        "name": "Department",
+        "options": {},
+        "fields":[
+            {
+                "name":"id",
+                "type":"Integer",
+                "PK":true,
+                "generator":"autoIncrement"
+            },
+
+            {
+                "name":"name",
+                "type":"String",
+                "unique":true,
+                "maxLength":30,
+                "generator":"rotateString",
+                "disbursementSpec": {
+                    "percentages":[30,30,30,10]
+                },
+                "data":["Math","Reading","History","Sports"]
+            },
+            {
+                "name":"mgrId",
+                "type":"Integer",
+                "unique":false,
+                "foreignRef" : {
+                    "dataSetName":"Employee",
+                    "fieldName":"id",
+                    "disbursementSpec": {
+                        "ratio": [1,1]
+                    }
+                }
+
+            }
+
+        ]
+
+    }
+
+]

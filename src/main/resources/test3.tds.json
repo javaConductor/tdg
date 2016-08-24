@@ -1,0 +1,161 @@
+[
+    {
+        "dataSetType": "rdbms",
+        "name": "Employee",
+        "options": {},
+        "relationships":[
+            {
+                "dataSetName" : "Department",
+                "fieldMap": {
+                    "deptId":"id"
+                },
+                "disbursementSpec": {
+                    "percentages":[1,2,3,25,25,25,19]
+                },
+                "active":true
+            }
+        ],
+        "fields": [
+            {
+                "name": "id",
+                "type":"Integer",
+                "PK":"true",
+                "generator":"autoIncrement"
+            },
+            {
+                "name":"deptId",
+                "type":"Integer"
+            },
+            {
+                "name":"salary",
+                "type":"Integer",
+                "min" : 400,
+                "max" : 404,
+                "generator":"randomInteger",
+                "unique":false
+
+            },
+            {
+                "name":"salary3",
+                "type":"Integer",
+                "min" : 40000,
+                "max" : 560000,
+                "generator":"randomInteger",
+                "unique":true
+
+            },
+            {
+                "name":"salary2",
+                "type":"Integer",
+                "min" : 40,
+                "max" : 56,
+                "generator":"randomInteger",
+                "unique":false
+
+            },
+            {
+                "name":"salary4",
+                "type":"Integer",
+                "min" : -333,
+                "max" : 333,
+                "generator":"randomInteger",
+                "unique":false
+
+            },
+            {
+                "name":"salary5",
+                "type":"Integer",
+                "min" : 777,
+                "max" : 888,
+                "generator":"randomInteger",
+                "unique":false
+
+            },
+            {
+                "name":"doubleValue",
+                "type":"Float",
+                "min" : 0.0,
+                "max" : 4.0,
+                "generator":"randomFloat",
+                "unique":false
+
+            },
+
+            {
+                "name":"name",
+                "type":"Text",
+                "unique":true,
+                "maxLength":30,
+                "generator":"rotatedStrings",
+                "disbursementSpec": {
+                    "percentages":[25,25,25,25]
+                },
+                "data":["Math","Reading","History","Sports"]
+            }
+        ]
+    },
+    {
+        "dataSetType": "rdbms",
+        "name": "Department",
+        "options": {},
+        "relationships":[
+            {
+                "dataSetName" : "Employee",
+                "fieldMap": {
+                    "mgrId":"id"
+                },
+                "disbursementSpec": {
+                    "percentages":[1,2,3,25,25,25,19]
+                },
+                "active":true
+            }
+        ],
+        "fields": [
+            {
+                "name": "id",
+                "type":"Integer",
+                "PK":"true",
+                "generator":"autoIncrement"
+            },
+            {
+                "name":"mgrId",
+                "type":"Integer",
+                "generator":"randomInteger",
+                "unique":true
+            }
+        ]
+    },
+    {
+        "dataSetType": "rdbms",
+        "name": "RetirementAccounts",
+        "options": {},
+        "relationships":[
+            {
+                "fieldMap": {
+                    "employeeId":"id"
+                },
+
+                "active":true,
+                "dataSetName":"Employee",
+                "disbursementSpec": {
+                    "ratio": [1, 1]
+                }
+
+            }
+        ],
+        "fields": [
+            {
+                "name": "id",
+                "type":"Integer",
+                "PK":"true",
+                "generator":"autoIncrement"
+            },
+            {
+                "name":"employeeId",
+                "type":"Integer",
+                "unique":true
+            }
+        ]
+    }
+
+]

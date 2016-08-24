@@ -1,0 +1,10 @@
+
+
+Builder Mgr...
+
+
+USAGE:
+buildTestData -schema inventory.tdg -dbInfo db.properties -count 25000 -outputType xls -outputFolder d:\data\generated\inventory
+
+
+

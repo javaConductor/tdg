@@ -1,0 +1,54 @@
+
+Employee:
+|id| fname | lname | deptId | reportsTo |
+
+Department:
+|id| name | mgrId
+
+
+Behavior:
+Generate Employee rows with:
+
+Foreign Ref:
+Employee.deptId = Department.id
+
+Self Ref:
+Employee.reportsTo = Employee.id
+recursion=false
+
+
+DataSet {
+	name: Employee,
+	options: {},
+	fields:{
+		id: {type:Integer, PK=true, generator="autoIncrement"},
+		fname:{type:"String", 
+			maxLength:30, 
+			generator:"rotateStringWithSequence", 
+			data:{"Billy","Willie","Pamela"}},
+		lname:{
+			like:"fname",
+			data:{"Smith","O'Leary","Riley","Jones"}},
+		reportsTo:{type:Integer, self-ref:{
+			recursion:false,
+			}},
+		salary:{type:Decimal, min:50000, max:135000 },
+		deptId:{type:Integer,
+                    foreign-ref:{foreign-field:"Department.id"},
+                    dispersement:{30,30,30,10} }
+		}
+	},
+	
+DataSet {
+	name: Department,
+	options: {},
+	fields:{
+		id:{type:Integer, PK=true, generator="autoIncrement"},
+		averageSalary:{type:Decimal, foreign-agg:{foreign-field:"Employee.salary", function:"average"} },
+		name:{type:'String', unique:true, maxLength:30, generator:'rotateString', data:{'Math','Reading','History','Sports'} },
+		mgrId:{type:'Integer', foreign-ref:{foreign-field:"Employee.id"}}
+		}
+	}
+	
+	
+	

@@ -1,0 +1,50 @@
+Foreign Aggregation:
+
+
+
+Customer:
+|id| fname | lname | totalAvailableFunds |
+
+Account:
+|id| customerId | type | amount | available |
+
+Behavior:
+Generate Customers rows with:
+
+Foreign Aggregation:
+Customer.totalAvailableFunds = SUM(Account.available) where Account.customerId=Customer.id 
+
+Table {
+	name: Customer,
+	options: {},
+	fields:{
+		id: {type:Integer, PK=true, generator="autoIncrement"},
+		fname:{type:"String", 
+			maxLength:30, 
+			generator:"rotateStringWithSequence", 
+			data:{"Billy","Willie","Pamela"}},
+		lname:{
+			like:"fname",
+			data:{"Smith","O'Leary","Riley","Jones"}},
+		totalAvailableFunds:{type:Decimal(3), 
+			foreign_agg:{
+				value: SUM(Account.available),
+				where: Account.customerId=Customer.id
+				}
+			}
+		}
+	}
+	
+Table {
+	name: Account,
+	options: {},
+	fields:{
+		id:{type:Integer, PK=true, generator="autoIncrement"},
+		customerId:{},
+		type:{},
+		amount:{},
+		available:{}
+		
+		}
+	}
+	

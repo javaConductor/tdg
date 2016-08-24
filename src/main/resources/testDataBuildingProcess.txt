@@ -1,0 +1,43 @@
+The data building process:
+
+
+EmployeeBuilder
+-----------------
+
+
+preProcess the Table...
+
+Look at the dispersements, 
+
+
+start Building ...
+determine how many to create
+nRows: {
+if this the main table then the user has decided
+else {
+	look at the 
+	dispersement= nRows >= # of dispersement amounts
+	data = nRows >= dataItems,
+	self-ref with recursion=false = nRows >1
+}
+}
+
+try to Building first nRows 
+
+builds the first n rows without foreign-ref fields.
+
+- call to the Mgr for these values from Dept Table
+
+- the Mgr will send a request to the DeptTable for a set of nRows values from column (id)
+
+- receives a Set containing nRows of values from DeptTable
+
+- using the dispersement (none means dispersement = ['100%']) we divide the rows into sections 
+each corresponding in size to the dispersement values.
+- Then each section is has that foreign-ref field assign a value from the Set received from the DeptTable
+  
+- When ALL rows are completed they published to the listeners.
+
+
+ 
+

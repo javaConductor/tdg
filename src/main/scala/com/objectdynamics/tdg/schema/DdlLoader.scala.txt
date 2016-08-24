@@ -1,0 +1,123 @@
+/*
+ * Created by IntelliJ IDEA.
+ * User: Lee
+ * Date: 3/3/11
+ * Time: 1:03 AM
+ */
+package com.objectdynamics.tdg.schema
+
+import com.objectdynamics.tdg.util.LogContributor
+import javax.sql.DataSource
+import org.apache.commons.dbcp.BasicDataSource
+import org.apache.ddlutils._
+import org.apache.ddlutils.model._
+import com.objectdynamics.tdg.spec._
+import com.objectdynamics.tdg.spec.datatypes._
+;
+
+class DdlLoader extends MetadataLoader with LogContributor
+{
+    def fromFile(fileName: String): ITestDataSchema =
+    {
+        null;
+    }
+
+    def fromText(text: String): ITestDataSchema =
+    {
+        null;
+    }
+
+    def fromDbInfo(dbInfo: DbInfo): ITestDataSchema =
+    {
+        val ds: DataSource = createDataSource(dbInfo);
+        fromDataSource(ds);
+    }
+
+    def fromDataSource(ds: DataSource): ITestDataSchema =
+    {
+
+        val db: Database = readDatabase(ds);
+        createSchema(db);
+    }
+
+
+    def createSchema(db: Database): ITestDataSchema =
+    {
+        val dssList: Map[String, DataSetSpec] = db.getTables map (
+                (tbl: Table) =>
+                    (tbl.getName -> createDataSetSpec(tbl))
+                ) toMap;
+        TestDataSchema(db.getName, dssList);
+    }
+
+    def createDataSetSpec(tbl: Table): DataSetSpec =
+    {
+        //  create Fields from columns
+        val fields: List[DataField] = tbl.getColumns.toList map ((c: Column) => fieldFromColumn(c)
+                );
+        //  create Fields from columns
+        val relationships: List[Relationship] = tbl.getForeignKeys.toList map (
+                (fk: ForeignKey) => relationshipFromFK(fk));
+
+        DataSetSpec(tbl.getName, fields, relationships);
+    }
+
+    def fieldFromColumn(c: Column): DataField =
+    {
+        val dt: DataType =
+            c.getType match
+            {
+                case "TEXT" => Text;
+                case "GRAPHIC" => Text;
+                case "VARCHAR" => Text;
+                case "VARCHAR2" => Text;
+                case "CHAR" => Text;
+                case "INTEGER" => Int;
+                case "DATE" => Date;
+                case "TIMESTAMP" => Date;
+                case "DATETIME" => Date;
+                case "DECIMAL" => Decimal(c.getScale);
+                case _ => throw new SchemaParseExeption("Unsupported type:" + c.getType);
+
+            }
+
+        var df = DataField(c.getName, dt);
+        df.maxLength = Some(c.getSizeAsInt);
+        //df.maxLength = Some(c.get);
+        df;
+
+    }
+
+    def relationshipFromFK(fk: ForeignKey): Relationship =
+    {
+
+        val fldMap: Map[String, String] = fk.getReferences map
+                {
+                    (ref: Reference) =>
+                        (ref.getLocalColumnName -> ref.getForeignColumnName)
+                } toMap;
+        Relationship(fk.getForeignTableName, fldMap, None, true);
+    }
+
+    def createDataSource(dbInfo: DbInfo): DataSource =
+    {
+        BasicDataSource ds = new BasicDataSource();
+        ds.setDriverClassName(dbInfo.driverClassName);
+        ds.setUsername(dbInfo.username);
+        ds.setPassword(dbInfo.pswd);
+        ds.setUrl(dbInfo.jdbcUrl);
+        return ds;
+    }
+
+    def readDatabase(dataSource: DataSource): Database =
+    {
+        Platform platform = PlatformFactory.createNewPlatformInstance(dataSource);
+        platform.readModelFromDatabase("model");
+    }
+}
+
+case class DbInfo(jdbcUrl: String,
+                  username: String,
+                  pswd: String,
+                  driverClassName: String,
+                  pathToDriverJar: String);
