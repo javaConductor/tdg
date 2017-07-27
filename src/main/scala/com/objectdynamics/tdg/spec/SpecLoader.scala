@@ -4,17 +4,14 @@ import java.io._
 
 import com.objectdynamics.tdg.util.FileHelper
 
-object SpecLoader
-{
+object SpecLoader {
 }
 
-class SpecLoader(jsonSpec: String)
-{
+class SpecLoader(jsonSpec: String) {
 
 
-    def this(file: File) =
-    {
-        this (FileHelper.fileAsString(file));
-    }
+  def this(file: File) = {
+    this(FileHelper.fileAsString(file));
+  }
 
 }

@@ -7,12 +7,11 @@ package com.objectdynamics.tdg.builder.model
  * Time: 1:09 AM
  */
 
-trait ITestData
-{
-    def +(ds: IDataSet): ITestData;
+trait ITestData {
+  def +(ds: IDataSet): ITestData;
 
-    def dataSet(dsName: String): Option[IDataSet];
+  def dataSet(dsName: String): Option[IDataSet];
 
-    def dataSetList: List[IDataSet];
+  def dataSetList: List[IDataSet];
 
 }

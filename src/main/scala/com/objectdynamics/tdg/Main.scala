@@ -1,3 +1,3 @@
 
-case class Foo(x:Int);
+case class Foo(x: Int);
 

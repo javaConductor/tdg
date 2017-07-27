@@ -1,267 +1,256 @@
 package com.objectdynamics.tdg.builder
 
-import com.objectdynamics.tdg.asyncmessages.ForeignObjectFunctionBCRequest
-import com.objectdynamics.tdg.builder.model.{IDataField, IDataRow, IDataSet, IDataSetBuilder, IDataSetSpec}
-import com.objectdynamics.tdg.builder.rdbms.ObjectGeneratorQueue
-import com.objectdynamics.tdg.generators._
-import com.objectdynamics.tdg.model._
-import com.objectdynamics.tdg.parser.model.FieldGenConstraints
-import com.objectdynamics.tdg.util._
+import com.objectdynamics.tdg.builder.model._
+import com.objectdynamics.tdg.generators.{Ctxt, GeneratedValue}
+import com.objectdynamics.tdg.model.{DataRow, TestData}
+import com.objectdynamics.tdg.parser.model._
+import com.objectdynamics.tdg.schema.TestDataSchema
+import com.objectdynamics.tdg.spec.datatypes.{DataType, IntType}
 
-trait Builder
-  extends IDataSetBuilder {
-
-  // with scala.actors.Actor {
-  // def requestDelegate: RequestDelegate;
-  //def dataSet: IDataSet;
-
-  def dataSetSpec: IDataSetSpec;
-
-  def isDone: Boolean;
-
-  //def fldGenSpecToGenParm(fgs: FieldGenConstraints): GeneratorParameters;
-}
-
-sealed trait MachineState;
-
-object Finished extends MachineState;
-
-object Created extends MachineState;
-
-trait RequestPending extends MachineState;
-
-//to group pending states
-object ForeignFieldFunctionRequestPending extends RequestPending;
-
-object ForeignFieldFunctionRequestPendingAndStartRevcd extends RequestPending;
-
-object Initialized extends MachineState;
-
-object Started extends MachineState;
-
-
-case class BuilderState(nRows: Long,
-                        theQ: Option[ObjectGeneratorQueue],
-                        dataSet: Option[IDataSet],
-                        fieldFunctions: Map[String, ObjectFieldGenFunc],
-                        foreignRequestIds: Map[String, ForeignObjectFunctionBCRequest] = Map.empty,
-                        machineState: MachineState = Created) //extends Serializable
-{
-  def withNewRequestId(idReq: (String, ForeignObjectFunctionBCRequest)) = this.copy(foreignRequestIds = foreignRequestIds + idReq)
-
-  def this() = this(-1L, None, None, Map.empty)
-
-  def +(obj: IDataRow): BuilderState = this.copy(dataSet = Some((dataSet.get) + obj));
-
-  def withNewObject(obj: IDataRow): BuilderState = this + obj;
-
-  def withoutRequestId(reqId: String) = this.copy(foreignRequestIds = foreignRequestIds - reqId)
-
-  def withFieldFunctions(ff: Map[String, ObjectFieldGenFunc]): BuilderState = this.copy(fieldFunctions = ff);
-
-  //fieldFunctions = (ff ++ this.fieldFunctions).toSet.toMap);
-
-  def withQueue(q: ObjectGeneratorQueue): BuilderState = this.copy(theQ = Some(q));
-
-  def withDataSet(ds: IDataSet): BuilderState = this.copy(dataSet = Some(ds));
-
-  def withRows(n: Long) = this.copy(nRows = n);
-
-  def withMachineState(mState: MachineState) = this.copy(machineState = mState)
-
-  def asFinished = this.copy(machineState = Finished);
-
-}
-
-trait genRowsFunc extends Function3[IDataSetSpec, Int, Option[Map[String, FieldGenConstraints]], List[IDataRow]] {
-  def apply(dss: IDataSetSpec, rows: Int, additionalFldConstraints: Option[Map[String, FieldGenConstraints]]): List[IDataRow];
-}
+import scala.collection.mutable
+import scalaz._
 
 /**
- * Function for merging FldGenConstraints from Relationships and from TreeRequest into one
- */
-trait constraintMerge extends Function2[FieldGenConstraints, FieldGenConstraints, FieldGenConstraints] {
-  def apply(fgc1: FieldGenConstraints, fgc2: FieldGenConstraints): FieldGenConstraints;
-}
+  * Created by lee on 7/25/17.
+  */
+trait Builder {
+  def build(buildRequest: BuildRequest,
+            testDataSchema: TestDataSchema): BuilderException \/ TestData = {
+    val ctxt: Ctxt = createContext
+    val testData: ITestData = TestData(Set())
 
-
-class ValueFunction(val gv: GeneratedValue) extends (() => GeneratedValue) {
-  // def this( g:GeneratedValue ) = this(() => GeneratedValue  => {g });
-  // apply() = f();
-  def this() = this(null);
-
-  def apply(): GeneratedValue = {
-    (if (gv == null) nullObjectFunction() else gv)
-  }
-}
-
-trait DataObjectFunction extends (() => IDataRow)
-
-trait BuilderContextSupport //extends BuilderFunctions
-{
-  var builderContext: BuilderContext = new BuilderContext;
-  implicit val setCtxt: Function2[String, Any, Unit] = {
-    (k: String, v: Any) => builderContext += (k -> v)
-  }
-  implicit val getCtxt: (String => Option[Any]) = {
-    (k: String) => builderContext.get(k)
-  }
-  // type Ctxt = (Function2[String, Any, Unit], (String => Option[Any]));
-  implicit val ctxt: Ctxt = Ctxt(setCtxt, getCtxt)
-
-}
-
-/**
- * These are the functions that actually produce the GeneratedValue instances.
- *
- * There are 2 subclasses:
- * LocalGenFunction
- * and
- * ForeignGenFunction
- */
-trait ObjectFieldGenFunc extends ((String, Long) => (ValueFunction)) {
-
-  def apply(fldName: String, rowIdx: Long): (ValueFunction)
-
-  def next = this;
-
-
-  def whichSet(nn: Int, sizes: List[Int]): Int = {
-
-    var s: Int = -1;
-    var slist: List[Int] = sizes.tail;
-    val listSum: Int = sizes.sum
-    var n = nn;
-    while (n > listSum) {
-      n -= listSum;
+    // get the data set if its in the schema
+    val testDataOpt = testDataSchema.dssMap.get(buildRequest.rootRequest.dataSetName) match {
+      case dss: IDataSetSpec => Some(buildDataSet(ctxt, testData, buildRequest.rootRequest, dss))
+      case _ => None
     }
 
-    while (s == -1 && !slist.isEmpty) {
-      if (n >= ((slist sum) toInt)) {
-        s = slist size
+    testDataOpt match {
+      case Some(x: BuilderException \/ TestData) => x
+      case _ => -\/(new BuilderException(s"No such data set: ${buildRequest.rootRequest.dataSetName}"))
+    }
+
+  }
+
+  def buildDataSet(ctxt: Ctxt, testData: ITestData, treeRequest: TreeRequest, dss: IDataSetSpec): BuilderException \/ ITestData =
+    DataSetBuilder.build(ctxt, testData, treeRequest, dss)
+
+  def createContext() = {
+    var ctxtMap: mutable.Map[String, Any] = mutable.Map[String, Any]()
+
+    def setCtxt(k: String, v: Any) = ctxtMap += (k -> v)
+
+    def getCtxt(k: String): Option[Any] = ctxtMap.get(k)
+
+    new Ctxt {
+      override val set: (String, Any) => Unit = setCtxt
+      override val get: (String) => Option[Any] = getCtxt
+    }
+  }
+
+}
+
+trait DataSetBuilder {
+  def build(ctxt: Ctxt, testData: ITestData, treeRequest: TreeRequest, dataSetSpec: IDataSetSpec): BuilderException \/ TestData
+}
+
+object DataSetBuilder {
+  def build(ctxt: Ctxt, testData: ITestData, treeRequest: TreeRequest, dataSetSpec: IDataSetSpec): BuilderException \/ ITestData =
+    new DefaultDataSetBuilder().build(ctxt, testData, treeRequest, dataSetSpec)
+}
+
+class DefaultDataSetBuilder() extends DataSetBuilder {
+
+  override def build(ctxt: Ctxt,
+                     testData: ITestData,
+                     treeRequest: TreeRequest,
+                     dataSetSpec: IDataSetSpec): \/[BuilderException, ITestData] = {
+    /// select the generators
+    val constraints = treeRequest.fieldConstraints
+
+    val generators = selectGenerators(dataSetSpec, constraints)
+    generators match {
+      case -\/(err) => -\/(err)
+      case \/-(fgTpl) => {
+        build(ctxt, testData, treeRequest, dataSetSpec, fgTpl)
       }
-      else {
-        slist = slist.tail
-      };
     }
-    if (s == -1) {
-      0
-    }
-    else {
-      s
-    };
   }
-}
 
-//trait Ctxt extends Tuple2[ Function2[String, Any, Unit], (String => Option[Any]) ]    {
-//
-//}
-case class Ctxt(wr: Function2[String, Any, Unit], rd: String => Option[Any])
-  extends Tuple2[Function2[String, Any, Unit], (String => Option[Any])](wr, rd) {
+  def build(ctxt: Ctxt,
+            testData: ITestData,
+            treeRequest: TreeRequest,
+            dataSetSpec: IDataSetSpec,
+            generators: Seq[(IDataField, FieldGenerator[_])]): \/[BuilderException, ITestData] = {
 
-  def apply(k: String, v: Any): Unit = this._1.apply(k, v);
-
-  def apply(k: String): Option[Any] = this._2.apply(k);
-
-}
-
-class LocalGenFunction(fld: IDataField,
-                       fldGenList: FieldGenList,
-                       ofgs: Option[FieldGenConstraints],
-                       totalObjectsToGen: Long,
-                       implicit val ctxt: Ctxt
-                        )
-  extends ObjectFieldGenFunc with NoLogContributor {
-  def apply(fldName: String, rowIdx: Long): ValueFunction = {
-
-    val normalGen: FieldGeneratorFunction = (fldGenList.forField(fld, ofgs) get);
-    log("LocalGenFunction(" + fld + ").(String, Long): using FieldGenFunc: " + normalGen);
-
-    val v: ValueFunction = ofgs match {
-      case Some(fgs: FieldGenConstraints) =>
-        // init the generator
-        //        normalGen.init(ctxt, fld, totalObjectsToGen)(fgs)
-
-        normalGen.init(ctxt, fld, totalObjectsToGen, Some(fgs))
-
-        normalGen.apply(ctxt, fld, Some(fgs));
-
-      case _ =>
-        normalGen.init(ctxt, fld, totalObjectsToGen, None)
-        normalGen.apply(ctxt, fld, None);
+    // initialize fg
+    dataSetSpec.fields.foreach { fld =>
+      val tpl = generators.find { tpl => tpl._1 == fld.name }
+      tpl match {
+        case Some(gen) => {
+          gen._2.init(ctxt,
+            fld,
+            dataSetSpec.name,
+            treeRequest.rows,
+            treeRequest.fieldConstraints.getOrElse(
+              fld.name,
+              FieldGenConstraints(fld.name, Set())
+            )
+          )
+        }
+      }
     }
 
-    v;
-  };
+    buildDataSet(ctxt, testData.dataSet(dataSetSpec.name).get, treeRequest.rows, generators) match {
+      case -\/(err) => -\/(err)
+      case \/-(dataSet) => \/-(testData + dataSet)
+    }
 
-}
+  }
 
-case class ForeignGenFunction(fldName: String, fldFunctions: List[ValueFunction], disb: Disbursement)
-  extends ObjectFieldGenFunc {
-  def apply(fldName: String, rowIdx: Long): ValueFunction = {
-    disb.disburse(fldFunctions)
-  };
+  def buildDataSet(ctxt: Ctxt,
+                   dataSet: IDataSet,
+                   nRows: Long,
+                   generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ IDataSet = {
 
-  override
-  def next = {
-    // advance the disbursement
-    this.copy(disb = disb.advance)
+    if (nRows == 0) {
+      \/-(dataSet)
+    } else {
+      buildDataRow(ctxt, dataSet.dataObjectSpec, generators) match {
+        case -\/(err) => -\/(err)
+        case \/-(dataRow) =>
+          buildDataSet(ctxt, dataSet + dataRow, nRows - 1, generators)
+      }
+    }
+  }
+
+  def generateRow(ctxt: Ctxt,
+                  dataSetSpec: IDataSetSpec,
+                  dataRow: IDataRow,
+                  generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ IDataRow = {
+
+    generators match {
+      case Nil => \/-(dataRow)
+      case h :: t => {
+        val df = h._1
+        val fg = h._2
+        fg.generate(ctxt, dataRow, df, dataSetSpec.name, FieldGenConstraints(df.name, Set())) match {
+          case -\/(err) => -\/(err)
+          case \/-(generatedValue) => generateRow(ctxt, dataSetSpec, dataRow + (df.name, generatedValue), t)
+        }
+      }
+    }
+  }
+
+  def buildDataRow(ctxt: Ctxt,
+                   dataSetSpec: IDataSetSpec,
+                   generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ IDataRow =
+    generateRow(ctxt, dataSetSpec, DataRow(dataSetSpec, "", Map.empty), generators)
+
+
+  def selectGenerators(dataSetSpec: IDataSetSpec,
+                       fieldGenConstraints: Map[String, FieldGenConstraints]): BuilderException \/ Seq[(IDataField, FieldGenerator[_])] = {
+    val namesAndEither = dataSetSpec.fields.zip(dataSetSpec.fields.map {
+      (df) =>
+        selectGenerator(dataSetSpec, df, fieldGenConstraints.getOrElse(df.name, FieldGenConstraints(df.name, Set())))
+    })
+
+    namesAndEither.foldLeft((List[BuilderException](), List[(IDataField, FieldGenerator[_])]()))((acc, r) => {
+      val dataField: IDataField = r._1
+      r._2 match {
+        case -\/(e) => (acc._1 :+ e, acc._2)
+        case \/-(fg) => (acc._1, acc._2 :+ (dataField, fg))
+      }
+    }
+    ) match {
+      case (Nil, h :: t) => \/-(h :: t)
+      case (h :: _, _) => -\/(h)
+    }
+
+  }
+
+  def selectGenerator(dataSetSpec: IDataSetSpec,
+                      dataField: IDataField,
+                      fieldGenConstraints: FieldGenConstraints): BuilderException \/ FieldGenerator[_] = {
+    FieldGeneratorList.generators.find { gen =>
+      gen.canGenerate(dataField, fieldGenConstraints)
+    } match {
+      case Some(fg: FieldGenerator[_]) => \/-(fg)
+      case None => -\/(new BuilderException(s"No Generator for dataType ${dataField.dataType.name} constraints $fieldGenConstraints"))
+    }
   }
 }
 
-trait SymbolValueObj;
+/** ***********************************************************************************************
+  *
+  * Generators
+  *
+  * ***********************************************************************************************/
+trait FieldGenerator[I <: DataType[_]] {
+  //val name:String
+  def init(ctxt: Ctxt, dataField: IDataField, dataSetName: String, nRows: Long, fldGenConstraints: FieldGenConstraints): Unit
 
-/**
- * These objects represent requestSymbolTable values
- *
- */
-trait SymbolValue[A] extends SymbolValueObj {
+  def generate(ctxt: Ctxt, dataRow: IDataRow, dataField: IDataField, dataSetName: String, fieldGenConstraints: FieldGenConstraints): BuilderException \/ GeneratedValue[_]
 
-  trait SymType;
-
-  object DataObject extends SymType;
-
-  object DataObjectList extends SymType;
-
-  object DataField extends SymType;
-
-  val symType: SymType;
-
-  def value: A;
-
-};
-
-case class SymObject(objFunc: () => IDataRow) extends SymbolValue[IDataRow] {
-  val symType: SymType = DataObject;
-
-  def value = objFunc();
-};
-
-case class SymObjectList(
-                          objFuncList: List[() => IDataRow]
-                          ) extends SymbolValue[List[IDataRow]] {
-  val symType: SymType = DataObjectList;
-
-  def value = List[IDataRow]();
+  def canGenerate(dataField: IDataField, fieldGenConstraints: FieldGenConstraints): Boolean
 }
 
-case class SymObjectField(obj: SymObject, fieldName: String) extends SymbolValue[ValueFunction] {
-  val symType: SymType = DataField;
 
-  def value = obj.value.value(fieldName);
+abstract class BaseGenerator[T](val name: String) extends FieldGenerator[T] {
+
+  def prefix(name: String, datasetName: String, fieldName: String) = s"$name:$datasetName:$fieldName"
+
 }
 
-class SymbolTable(symbols: Map[String, SymbolValueObj]) {
-
-  def this() = this(Map[String, SymbolValueObj]());
-
-  def +(symAndName: Tuple2[String, SymbolValueObj]): SymbolTable = {
-    new SymbolTable(symbols + symAndName);
+class IntegerGenerator extends BaseGenerator[IntType]("RandomInteger") {
+  override def canGenerate(dataField: IDataField, fieldGenConstraints: FieldGenConstraints): Boolean = {
+    dataField.dataType == IntType
   }
 
-  def symbol(symbolName: String): Option[SymbolValueObj] = {
-    symbols.get(symbolName)
+  case class GenContext(min: BigInt, max: BigInt, list: Seq[BigInt], last: BigInt) {
+    def this() = this(BigInt(Int.MinValue), BigInt(Int.MaxValue), List.empty, 0)
   }
 
+  override def init(ctxt: Ctxt,
+                    dataField: IDataField,
+                    dataSetName: String,
+                    nRows: Long,
+                    fldGenConstraints: FieldGenConstraints): Unit = {
+
+    /// determine strategy
+    val gc = fldGenConstraints.fldGenSpecs.foldLeft(GenContext) { (gc: GenContext, fldGenContraint) =>
+      fldGenContraint match {
+        case BetweenSpec(start, end) =>
+          gc.copy(min = BigInt(start), max = BigInt(end))
+        case InSpec(l) =>
+          gc.copy(list = l.map((i) => BigInt(i)))
+        case EqSpec(n) =>
+          gc.copy(min = BigInt(n), max = BigInt(n))
+        case _ => gc
+      }
+
+    }
+    val ctxtPrefix = prefix(name, dataSetName, dataField.name)
+    ctxt.set(ctxtPrefix, gc)
+  }
+
+
+  override def generate(ctxt: Ctxt,
+                        dataRow: IDataRow,
+                        dataField: IDataField,
+                        dataSetName: String,
+                        fieldGenConstraints: FieldGenConstraints): BuilderException \/ GeneratedValue[_] = {
+
+
+    -\/(new BuilderException("Not yet implemented!"))
+
+  }
 }
+
+
+object FieldGeneratorList {
+
+  def generators: List[FieldGenerator[_]] = List(new IntegerGenerator)
+}
+
 

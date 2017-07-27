@@ -5,16 +5,16 @@
 
 package com.objectdynamics.tdg.asyncmessages
 
-import com.objectdynamics.tdg.builder.model._
-import com.objectdynamics.tdg.parser.model._
-import scala.concurrent.SyncVar
-import com.objectdynamics.tdg.builder.delegate._
-import com.objectdynamics.tdg.delivery.DeliveryAgent
-import com.objectdynamics.tdg.builder._
 import akka.actor._
+import com.objectdynamics.tdg.builder._
+import com.objectdynamics.tdg.builder.delegate._
+import com.objectdynamics.tdg.builder.model._
+import com.objectdynamics.tdg.delivery.DeliveryAgent
+import com.objectdynamics.tdg.parser.model._
 
-trait Message extends IMessage
-{
+import scala.concurrent.SyncVar
+
+trait Message extends IMessage {
 
 }
 
@@ -27,8 +27,8 @@ sealed trait NativeMessage extends Message;
  */
 
 /**
- * BuildCoordinator message
- */
+  * BuildCoordinator message
+  */
 
 case object StartBuild extends NativeMessage;
 
@@ -39,9 +39,9 @@ case class InitBuildCoordinator(buildRequest: BuildRequest, agent: DeliveryAgent
 case class InitBuilder(nRows: Long, treeRequest: TreeRequest) extends NativeMessage;
 
 /**
- * The Final message sent in the test data process.  The entire data payload is usually delivered with this message.
- *
- */
+  * The Final message sent in the test data process.  The entire data payload is usually delivered with this message.
+  *
+  */
 case class TestDataComplete() extends NativeMessage;
 
 //case class GenerateRowsNormalFieldsOnly(nRows: Long) extends NativeMessage;
@@ -75,40 +75,43 @@ case class DataSetsCompleted() extends NativeMessage;
 case class PostCompleteData(dataSetName: String, data: List[IDataRow]) extends NativeMessage;
 
 case object Stop extends NativeMessage;
+
 case object BuildingDone extends NativeMessage;
+
 case class PartialRowRequest(id: Long,
                              fieldConstraintsMap: Map[String, FieldGenConstraints],
                              fields: List[IDataField],
                              nRows: Long) extends NativeMessage;
 
 case class ForeignObjectFunctionRequest(requestId: String,
-                                        client:Actor,
+                                        client: Actor,
                                         treeRequest: TreeRequest,
-                                        fieldsToGenerate:Map[String,String],
+                                        fieldsToGenerate: Map[String, String],
                                         preDefValues: Map[String, ValueFunction],
-                                        nRows: Long) extends NativeMessage
-{
-    def this( tr:TreeRequest, bcReq:ForeignObjectFunctionBCRequest)  = {
-        this(bcReq.requestId, bcReq.client, tr,bcReq.fieldsToGenerate, bcReq.preDefValues, bcReq.nRows)
-    }
+                                        nRows: Long) extends NativeMessage {
+  def this(tr: TreeRequest, bcReq: ForeignObjectFunctionBCRequest) = {
+    this(bcReq.requestId, bcReq.client, tr, bcReq.fieldsToGenerate, bcReq.preDefValues, bcReq.nRows)
+  }
 };
+
 case class ForeignObjectFunctionBCRequest(requestId: String,
-                                        client:Actor,
-                                        dataSetName: String,
-                                        fieldsToGenerate: Map[String,String],
-                                        preDefValues: Map[String, ValueFunction],
-                                        nRows: Long) extends NativeMessage;
+                                          client: Actor,
+                                          dataSetName: String,
+                                          fieldsToGenerate: Map[String, String],
+                                          preDefValues: Map[String, ValueFunction],
+                                          nRows: Long) extends NativeMessage;
 
 case class ObjectRequest(requestId: String,
-                                        reg: TreeRequest,
-                                        client:Actor,
-                         fieldsToGen:Map[String,String],
+                         reg: TreeRequest,
+                         client: Actor,
+                         fieldsToGen: Map[String, String],
                          preDefValues: Map[String, ValueFunction],
                          nRows: Long) extends NativeMessage;
 
 
 case class ForeignObjectFunctionResponse(requestId: String,
-                                        funks:Map[String, List[ValueFunction]]) extends NativeMessage;
+                                         funks: Map[String, List[ValueFunction]]) extends NativeMessage;
+
 // builderMgr -> Builder
 @deprecated
 case class RowValueRequest(requestingField: String, dataSet: String,
@@ -121,4 +124,4 @@ case class RowValueRequest(requestingField: String, dataSet: String,
                            unique: Boolean) extends NativeMessage;
 
 
- case class AddFunks(ff: Map[String, ObjectFieldGenFunc]) extends NativeMessage;
+case class AddFunks(ff: Map[String, ObjectFieldGenFunc]) extends NativeMessage;

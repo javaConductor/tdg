@@ -1,7 +1,6 @@
 package com.objectdynamics.tdg.builder.model
 
 import com.objectdynamics.tdg.generators._
-import com.objectdynamics.tdg.builder.ValueFunction
 
 /*
  * Created by IntelliJ IDEA.
@@ -10,39 +9,31 @@ import com.objectdynamics.tdg.builder.ValueFunction
  * Time: 12:42 AM
  */
 
-trait IDataRow
-{
+trait IDataRow {
 
-    def dss: IDataSetSpec;
+  def dss: IDataSetSpec
 
-    def data: Map[String, ValueFunction];
+  def data: Map[String, GeneratedValue[_]]
 
-    def value(fldName: String): ValueFunction =
-    {
-        val f: String = fldName;
-        data(f) match
-        {
-            case (gval: ValueFunction) => gval;
-            case _ => nullObjectFunction
-        }
-    };
+  def value(fldName: String): GeneratedValue[_] = {
+    val f: String = fldName
+    data(f) match {
+      case (generatedValue: GeneratedValue[_]) => generatedValue
+      case _ => NullValue
+    }
+  }
 
-    def published: Boolean;
+  def complete: Boolean
 
-    //def published_=(b: Boolean): Unit;
-    def asPublished(): IDataRow;
+  def +(fldValue: NamedGeneratedValue[_]): IDataRow
 
-    def complete: Boolean;
+  def +(dataItem: (String, GeneratedValue[_])): IDataRow
 
-    def +(fldValue: Tuple2[String, ValueFunction]): IDataRow;
+  def withDataRenamedTo(newNameMap: Map[String, String]): IDataRow
 
-    def +(fldValue: NamedGeneratedValue): IDataRow;
+  def withFields(fldNames: Set[String]): IDataRow
 
-    def withDataRenamedTo(newNameMap: Map[String, String]): IDataRow;
+  def hasFields(fldNames: Set[String]): Boolean
 
-    def withFields(fldNames: Set[String]): IDataRow;
-
-    def hasFields(fldNames: Set[String]): Boolean;
-
-    def id: String;
+  def id: String
 }

@@ -1,62 +1,54 @@
 package com.objectdynamics.tdg.model
 
-import com.objectdynamics.tdg.spec.DisbursementSpec
-import com.objectdynamics.tdg.util.LogContributor;
+import com.objectdynamics.tdg.spec.DisbursementSpec;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Lee
- * Date: 12/16/10
- * Time: 12:37 AM
- * To change this template use File | Settings | File Templates.
- */
+  * Created by IntelliJ IDEA.
+  * User: Lee
+  * Date: 12/16/10
+  * Time: 12:37 AM
+  * To change this template use File | Settings | File Templates.
+  */
 
-trait Disbursement
-{
-    def advance: Disbursement;
+trait Disbursement {
+  def advance: Disbursement;
 
-    @deprecated
-    def indices: List[Long];
+  @deprecated
+  def indices: List[Long];
 
-    def currentSet: CurrentSet;
+  def currentSet: CurrentSet;
 
-    def disbursementSpec: DisbursementSpec;
+  def disbursementSpec: DisbursementSpec;
 
-    def disburse[T](in: List[T]): T ;
+  def disburse[T](in: List[T]): T;
 
-    def roundRobin(dataSize: Long): Disbursement =
-    {
-        roundRobinDisbursement(dataSize);
-    }
+  def roundRobin(dataSize: Long): Disbursement = {
+    roundRobinDisbursement(dataSize);
+  }
 
-    def createStateMap(spec: DisbursementSpec, nRows: Long): Map[Int, Long];
+  def createStateMap(spec: DisbursementSpec, nRows: Long): Map[Int, Long];
 }
 
-case class roundRobinDisbursement(dataSize: Long, current: Long = 0) extends AbstractDisbursement
-{
-    def createStateMap(spec: DisbursementSpec, nRows: Long): Map[Int, Long] =
-    {
+case class roundRobinDisbursement(dataSize: Long, current: Long = 0) extends AbstractDisbursement {
+  val _currentSet: CurrentSet = CurrentSet(current.intValue())
 
-        (1L to dataSize) map
-          {l: Long => (l.intValue(), 1L)} toMap
-    }
+  def createStateMap(spec: DisbursementSpec, nRows: Long): Map[Int, Long] = {
 
-    def advance: Disbursement =
-    {
-        val nuc = if(current >= (dataSize.toInt - 1)) 0 else current + 1
-        copy(current = nuc);
-    }
+    (1L to dataSize) map { l: Long => (l.intValue(), 1L) } toMap
+  }
 
-    def indices: List[Long] =
-    {
-        1L :: List(current)
-    };
+  def advance: Disbursement = {
+    val nuc = if (current >= (dataSize.toInt - 1)) 0 else current + 1
+    copy(current = nuc);
+  }
 
-    val _currentSet: CurrentSet = CurrentSet(current.intValue())
+  def indices: List[Long] = {
+    1L :: List(current)
+  };
 
-    def currentSet: CurrentSet = _currentSet
+  def currentSet: CurrentSet = _currentSet
 
-    def disbursementSpec: DisbursementSpec = null;
+  def disbursementSpec: DisbursementSpec = null;
 
 }
 

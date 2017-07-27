@@ -6,7 +6,6 @@ package com.objectdynamics.tdg.builder.model
  * Date: 3/9/11
  * Time: 9:24 PM
  */
-trait IBuildRunner
-{
+trait IBuildRunner {
 
 }

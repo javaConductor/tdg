@@ -7,39 +7,22 @@ package com.objectdynamics.tdg.builder.model
  * Time: 12:45 AM
  */
 
-import com.objectdynamics.tdg.spec.DisbursementSpec
 import com.objectdynamics.tdg.spec.datatypes._
 
-trait IDataField /*[+D <: IDataTypeObject, +E <: IDataTypeInstance]*/
-{
-    val name: String;
-    val fieldType: FieldType;
-    val dataType: IDataTypeInstance;
+trait IDataField /*[+D <: IDataTypeObject ]*/ {
+  val name: String
+  val fieldType: FieldType
+  val dataType: IDataTypeInstance
 
-    def isAggregate: Boolean;
+  def data: Option[List[_]] = None
 
-    def primaryKey: Boolean;
+  def unique: Boolean = false
 
-    def generatorName: Option[String] = None;
+  def prefix: Option[String] = None
 
-    def setGeneratorName(n: String): Unit;
+  def suffix: Option[String] = None
 
-    def data: Option[List[_]] = None;
-
-    //    var foreignRef: Option[ForeignRef] = None;
-    def disbursementSpec: Option[DisbursementSpec] = None;
-
-    // var foreignAgg: Option[SelfRef];
-    def maxLength: Option[Int] = None;
-
-    def min: Option[BigDecimal] = None;
-
-    def max: Option[BigDecimal] = None;
-
-    def unique: Boolean = false;
-
-    def prefix: Option[String] = None;
-
-    def suffix: Option[String] = None;
+  @deprecated
+  def makeLike(name: String): IDataField
 
 }

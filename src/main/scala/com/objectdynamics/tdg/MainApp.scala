@@ -5,8 +5,6 @@
 
 package com.objectdynamics.tdg
 
-import com.objectdynamics.tdg.builder._
-
 /// Generating data for a Database
 /// tdg -build -schema inventory.tdg -dbInfo db.properties -count 25000 -outputType jdbc -outputFolder ./data
 
@@ -20,22 +18,19 @@ import com.objectdynamics.tdg.builder._
 
 object MainApp //extends Application
 {
-    var tstArray = Array("-ds", "RetirementAccounts",
-                         "-schema", "/home/lcollins/workspaces/tdg/svn/test-data-generator/trunk/src/main/resources/test3.tds.json",
-                         "-count", "2000",
-                         "-outputType", "csv",
-                         "-schemaType", "json",
-                         "-outputFolder", "./data");
-
-
-    val executionStart: Long = 0L;
+  val executionStart: Long = 0L;
+  var tstArray = Array("-ds", "RetirementAccounts",
+    "-schema", "/home/lcollins/workspaces/tdg/svn/test-data-generator/trunk/src/main/resources/test3.tds.json",
+    "-count", "2000",
+    "-outputType", "csv",
+    "-schemaType", "json",
+    "-outputFolder", "./data");
 
   /**
-   * @param args the command line arguments
-   */
-  def main(args: Array[String])
-    {
+    * @param args the command line arguments
+    */
+  def main(args: Array[String]) {
 
-        new BuildRunner(tstArray).toString;
-    }
+    new BuildRunner(tstArray).toString;
+  }
 }

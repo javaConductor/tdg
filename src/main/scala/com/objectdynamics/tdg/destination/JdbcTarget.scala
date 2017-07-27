@@ -12,10 +12,8 @@ case class JdbcTarget(jdbcUrl: String,
                       user: String,
                       pswd: String,
                       schema: String,
-                      catalog: String) extends IDataTarget
-{
-    def this(jdbcUrl: String, user: String, pswd: String) =
-    {
-        this (jdbcUrl, user, pswd, null, null);
-    }
+                      catalog: String) extends IDataTarget {
+  def this(jdbcUrl: String, user: String, pswd: String) = {
+    this(jdbcUrl, user, pswd, null, null);
+  }
 }

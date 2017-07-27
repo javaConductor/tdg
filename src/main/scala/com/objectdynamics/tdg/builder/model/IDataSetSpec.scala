@@ -4,28 +4,17 @@ import com.objectdynamics.tdg.spec._
 
 trait IDataSetSpec {
 
-    def isNormal(fldName: String): Boolean;
+  val name: String
+  var dataSetType: DataSetType
 
-    def hasAggregates: Boolean;
+  def isNormal(fldName: String): Boolean
 
-    //var name:String;
-    def hasForeignRefs(): Boolean = !relationships.isEmpty;
+  def fields: List[IDataField]
 
-    def isAggregate(fldName: String): Boolean;
+  def field(fldName: String): Option[IDataField]
 
-    def isForeignRef(fldName: String): Boolean;
+  def fieldNames: List[String]
 
-    def relationship(idx: Int): Option[Relationship];
+  def definesFields(flds: Set[String]): Boolean = flds.size == (fields intersect flds.toList).length
 
-    def relationships: List[Relationship];
-
-    def relationshipsFor(fldName: String): List[Relationship];
-
-    def fields: List[IDataField];
-
-    def field(fldName: String): Option[IDataField];
-
-    def fieldNames: List[String];
-    var dataSetType: DataSetType;
-    val name: String;
 }

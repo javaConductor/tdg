@@ -3,18 +3,17 @@ package com.objectdynamics.tdg.builder.aggregates
 import com.objectdynamics.tdg.generators.GeneratedValue
 
 /**
- * Created by IntelliJ IDEA.
- * User: lcollins
- * Date: 8/17/11
- * Time: 11:11 PM
- * To change this template use File | Settings | File Templates.
- */
+  * Created by IntelliJ IDEA.
+  * User: lcollins
+  * Date: 8/17/11
+  * Time: 11:11 PM
+  * To change this template use File | Settings | File Templates.
+  */
 
-trait Aggregator
-{
-    def acc(value: GeneratedValue, ctxt: Map[String, Any]): Map[String, Any];
+trait Aggregator {
+  def acc(value: GeneratedValue, ctxt: Map[String, Any]): Map[String, Any];
 
-    def value(ctxt: Map[String, Any]): GeneratedValue;
+  def value(ctxt: Map[String, Any]): GeneratedValue;
 }
 
 //

@@ -5,7 +5,6 @@
 
 package com.objectdynamics.tdg.asyncmessages
 
-trait IMessage
-{
+trait IMessage {
 
 }

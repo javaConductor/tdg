@@ -1,121 +1,86 @@
 package com.objectdynamics.tdg.model
 
-import com.objectdynamics.tdg.util._
-import java.lang.String
 import com.objectdynamics.tdg.builder.model._
-import com.objectdynamics.tdg.generators.NamedGeneratedValue
-import com.objectdynamics.tdg.builder.ValueFunction
+import com.objectdynamics.tdg.generators.{GeneratedValue, NamedGeneratedValue}
+import com.objectdynamics.tdg.util._
 
 /**
- * This class represents a row in RDBMS Table or Key/Value pair in a No-SQL Collection
- *
- * C
- *    D <: IDataTypeObject,
-    E <: IDataTypeInstance,
-    B <: IDataSetSpec[IDataField[D,E]]
+  * This class represents a row in RDBMS Table or Key/Value pair in a No-SQL Collection
+  *
+  * C
+  * D <: IDataTypeObject,
+  * E <: IDataTypeInstance,
+  * B <: IDataSetSpec[IDataField[D,E]]
+  *
+  */
+case class DataRow(dataSetSpec: IDataSetSpec,
+                   objectId: String,
+                   data: Map[String, GeneratedValue[_]] = Map.empty)
+  extends IDataRow with LogContributor {
 
- */
-case class DataRow(dataSetSpec: IDataSetSpec, objectId: String, published: Boolean, data: Map[String, ValueFunction] = Map.empty)
-  extends IDataRow with LogContributor
-{
+  var isComplete: Boolean = {
+    val b = hasFields(ListHelper.listToSet(fields))
+    // log(this + ": complete=" + b);
+    b
 
-    def this(dataSetSpec: IDataSetSpec, objectId: String) = this (dataSetSpec, objectId, false);
+  }
 
-    //var data:Map[String, Option[Any] ]
-    def fields(): List[String] = dss.fields map {
-          _.name
-      };
+  def this(dataSetSpec: IDataSetSpec, objectId: String) = this(dataSetSpec, objectId, false);
 
-    //var published: Boolean = false;
+  override def +(fldValue: NamedGeneratedValue[_]): IDataRow = this + (fldValue.name, fldValue)
 
-
-    def +(fldValue: NamedGeneratedValue): IDataRow = null
-
-    def id: String = objectId;
-
-    def asPublished = this.copy(published = true);
+  override def +(dataItem: (String, GeneratedValue[_])): IDataRow = {
+    this.copy(dataSetSpec = dss, data = this.data + (dataItem._1 -> dataItem._2))
+  }
 
 
-    var isComplete: Boolean =
-    {
-        val b = hasFields(ListHelper.listToSet(fields))
-        // log(this + ": complete=" + b);
-        b
+  def complete: Boolean = isComplete
 
-    };
-
-    def dss: IDataSetSpec =
-    {
-        dataSetSpec
-    };
-
-    def complete: Boolean = isComplete
-
-    //val dataField:DataField;
-    //    override def value(field: String): Option[Any] = data.get(field) match
-    //    {
-    //        case Some(opt: Option[Any]) => opt
-    //        case None => None
-    //    };
-
-    def hasFields(flds: Set[String]): Boolean =
-    {
-
-        flds.forall
-          {
-              data.get(_) match
-              {
-                  case Some(x) => true;
-                  case None => false;
-              }
-          }
-    };
-
-    def definesFields(flds: Set[String]): Boolean = flds.size == (fields intersect flds.toList).length;
-
-    def +(dataItem: Tuple2[String, ValueFunction]) =
-    {
-
-        this.copy(dataSetSpec = dss, data = this.data + (dataItem._1 -> dataItem._2));
+  def hasFields(flds: Set[String]): Boolean = {
+    flds.forall {
+      data.get(_) match {
+        case Some(x) => true;
+        case None => false;
+      }
     }
+  }
 
-    //def +(fldValue: NamedGeneratedValue):DataRow = this + ( fldValue.name -> valueFunction(fldValue) );
+  def definesFields(flds: Set[String]): Boolean = flds.size == (fields intersect flds.toList).length;
 
-    def fieldSet(flds: Set[String]): Map[String, ValueFunction] =
-    {
-        (flds map
-          {fldname: String => (fldname -> value(fldname))}) toMap;
+  //var data:Map[String, Option[Any] ]
+  def fields(): List[String] = dss.fields map {
+    _.name
+  };
+
+  //val dataField:DataField;
+  override def value(field: String): Option[GeneratedValue[_]] = data.get(field)
+
+  def withFields(flds: Set[String]): DataRow = this.copy(dataSetSpec = dss, data = fieldSet(flds));
+
+  def dss: IDataSetSpec = {
+    dataSetSpec
+  }
+
+  def fieldSet(flds: Set[String]): Map[String, GeneratedValue[_]] = {
+    hasFields(flds) match {
+      case true => (flds map { fldname: String => (fldname -> value(fldname).get) }) toMap
+      case false => Map.empty
     }
+  }
 
-    def withFields(flds: Set[String]): DataRow = this.copy(dataSetSpec = dss, data = fieldSet(flds));
+  def withDataRenamedTo(fmap: Map[String, String]): IDataRow = {
+    val fields = fieldSet(fmap.keySet)
+    this.copy(data = fields.map {
+      (tpl) => {
+        val name = tpl._1
+        val gval = tpl._2
+        fmap.get(name).get -> gval
+      }
+    })
+  }
 
-    def withDataRenamedTo(fmap: Map[String, String]): DataRow =
-    {
-        val nuData: Map[String, ValueFunction] = fmap map
-          {
-              flds: Tuple2[String, String] =>
-                  val currentFld = flds._1;
-                  val nuFld = flds._2;
-                  (nuFld -> value(currentFld))
-          }
-        this.copy(data = nuData);
-    }
+  override def toString: String = "DataRow(" + dss.name + ")" + (".") + id
 
-    override def toString: String = "DataRow(" + dss.name + ")" + (if (this.published) " PUBLISHED->" else "."  )+ id ;
+  def id: String = objectId;
 }
 
-//class PartialRow(override val dss: DataSetSpec, override val data: Map[String, ValueFunction])
-//  extends DataRow(dss:
-//        DataSetSpec,
-//  data: Map[String, ValueFunction])
-//  {
-//  //  override def complete = false;
-//
-//  //new  Map[String, Option[Any] ]()
-//  override def withFields(flds: Set[String]): DataRow = {
-//    new PartialRow(dss, fieldSet(flds));
-//  }
-//
-//  }
-
-//PartialRow

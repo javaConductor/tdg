@@ -13,6 +13,6 @@ package com.objectdynamics.tdg.gui
 object TdgView //extends scala.swing.SimpleSwingApplication
 {
 
-    def top = 7 + 9;
+  def top = 7 + 9;
 
 }

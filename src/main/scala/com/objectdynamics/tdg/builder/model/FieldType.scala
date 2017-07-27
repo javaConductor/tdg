@@ -8,18 +8,17 @@ package com.objectdynamics.tdg.builder.model
 
 ;
 
-sealed trait FieldType
-{
+sealed trait FieldType {
 
-    //TODO add to/from String methods
+  //TODO add to/from String methods
 
 }
 
-object ASingleValue extends FieldType;
+object ASingleValue extends FieldType
 
-object AnObjectArray extends FieldType;
+object AnObjectArray extends FieldType
 
-object AValueArray extends FieldType;
+object AValueArray extends FieldType
 
-object AnObject extends FieldType;
+object AnObject extends FieldType
 

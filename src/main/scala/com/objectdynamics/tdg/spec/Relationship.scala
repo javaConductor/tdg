@@ -6,7 +6,6 @@ case class Relationship(dataSetName: String,
                         fieldMap: Map[String, String],
                         fieldConstraints: Map[String, FieldGenConstraints],
                         defaultDisbursementSpec: Option[DisbursementSpec],
-                        active: Boolean)
-{
+                        active: Boolean) {
 
 }

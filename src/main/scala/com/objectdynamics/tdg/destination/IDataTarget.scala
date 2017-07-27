@@ -8,7 +8,6 @@ package com.objectdynamics.tdg.destination
 
 ;
 
-trait IDataTarget
-{
+trait IDataTarget {
 
 }

@@ -10,15 +10,14 @@ package com.objectdynamics.tdg.builder.model
 import akka.actor.Actor
 import com.objectdynamics.tdg.builder.delegate._
 
-trait IDataSetBuilder extends Actor
-{
+trait IDataSetBuilder extends Actor {
 
-    var requestDelegate: RequestDelegate;
-    //var dataSet: IDataSet;
-    var dataSetSpec: IDataSetSpec;
+  var requestDelegate: RequestDelegate;
+  //var dataSet: IDataSet;
+  var dataSetSpec: IDataSetSpec;
 
-    def createDataRow(): IDataRow;
+  def createDataRow(): IDataRow;
 
-    def createDataSet(dss: IDataSetSpec, rowList: List[IDataRow]): IDataSet;
+  def createDataSet(dss: IDataSetSpec, rowList: List[IDataRow]): IDataSet;
 
 }

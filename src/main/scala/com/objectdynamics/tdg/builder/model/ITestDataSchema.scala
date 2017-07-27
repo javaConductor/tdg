@@ -8,11 +8,10 @@ package com.objectdynamics.tdg.builder.model
  */
 ;
 
-trait ITestDataSchema
-{
-    def +(dss: IDataSetSpec): ITestDataSchema;
+trait ITestDataSchema {
+  def +(dss: IDataSetSpec): ITestDataSchema;
 
-    def dataSetSpec(name: String): Option[IDataSetSpec];
+  def dataSetSpec(name: String): Option[IDataSetSpec];
 
-    def dataSetSpecs: Map[String, IDataSetSpec];
+  def dataSetSpecs: Map[String, IDataSetSpec];
 }

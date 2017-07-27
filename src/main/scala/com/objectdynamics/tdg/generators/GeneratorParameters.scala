@@ -4,8 +4,7 @@ case class GeneratorParameters(min: Option[Any],
                                max: Option[Any],
                                particularValue: Option[Any],
                                data: List[Option[Any]],
-                               valueExclusions: List[Any])
-{
+                               valueExclusions: List[Any]) {
 
 }
 

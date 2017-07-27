@@ -1,146 +1,76 @@
 package com.objectdynamics.tdg.generators
 
 import java.util.Date
+
 import com.objectdynamics.tdg.spec.datatypes._
-import com.objectdynamics.tdg.builder.ValueFunction
 
 /**
- * Created by IntelliJ IDEA.
- * User: lcollins
- * Date: 8/9/11
- * Time: 1:19 AM
- * To change this template use File | Settings | File Templates.
- */
+  * Created by IntelliJ IDEA.
+  * User: lcollins
+  * Date: 8/9/11
+  * Time: 1:19 AM
+  * To change this template use File | Settings | File Templates.
+  */
 
 /**
- * holds ONE generated field
- */
-trait GeneratedValue
-{
-    def dataType: DataType;
+  * holds ONE generated field
+  */
+sealed trait GeneratedValue[T <: DataType[_]] {
+  type DType = T
+  type ScalaType
 
-    def value: Any;
+  def dataType: T
 
-};
+  def value: Option[DType]
 
-trait TypedValue[A] extends GeneratedValue
-{
-    def value: Option[A];
-
-    def apply() = value;
-};
-
-trait NamedGeneratedValue extends GeneratedValue
-{
-    def name: String;
-};
-
-trait NamedTypedGeneratedValue[A] extends TypedValue[A] with NamedGeneratedValue
-{
-
-
-    def apply[A](nm: String, v: TypedValue[A]): NamedTypedGeneratedValue[A] =
-    {
-
-        new NamedTypedGeneratedValue[A]
-        {
-            def name: String = nm;
-
-            def dataType: DataType = v.dataType;
-
-            def value: Option[A] = v.value;
-        }
-    }
-};
-
-case class AnonymousNumberValue(value: Option[Float.scalaClass]) extends TypedValue[BigDecimal]
-{
-    def dataType: DataType = Float;
+  def apply = value
 }
 
-case class AnonymousIntValue(value: Option[IntType.scalaClass]) extends TypedValue[BigInt]
-{
-    def dataType: DataType = IntType;
-}
-
-case class AnonymousTextValue(value: Option[Text.scalaClass]) extends TypedValue[String]
-{
-    def dataType: DataType = Text;
-}
-
-case class AnonymousDecimalValue(value: Option[BigDecimal], decimalPlaces: Int)
-  extends TypedValue[BigDecimal]
-{
-    def dataType: DataType = Decimal(decimalPlaces);
-}
-
-case class AnonymousFloatValue(value: Option[BigDecimal]) extends TypedValue[BigDecimal]
-{
-    def dataType: DataType = Float;
+trait TypedValue[T] extends GeneratedValue[T] {
 
 }
 
-case class AnonymousDateValue(value: Option[Date]) extends TypedValue[Date]
-{
-    def dataType: DataType = DateType;
+trait NamedGeneratedValue[T] extends GeneratedValue[T] {
+  def name: String
 }
 
-case class NumberValue(name: String, value: Option[BigDecimal]) extends NamedTypedGeneratedValue[BigDecimal]
-{
-    def dataType: DataType = Float;
+case class IntValue(num: Int, name: Option[String] = None) extends NamedGeneratedValue[IntType] {
+  override type ScalaType = Int
+
+  override def dataType: IntType = {
+    IntType()
+  }
+
+  override def value: Option[ScalaType] = {
+    Some(num)
+  }
 }
 
-case class IntValue(name: String, value: Option[BigInt]) extends NamedTypedGeneratedValue[BigInt]
-{
-    def dataType: DataType = IntType;
+case class TextValue(text: String, name: Option[String] = None) extends NamedGeneratedValue[Text] {
+  override type ScalaType = String
+
+  override def dataType = {
+    Text()
+  }
+
+  override def value: Option[ScalaType] = {
+    Some(text)
+  }
 }
 
-case class TextValue(name: String, value: Option[String]) extends NamedTypedGeneratedValue[String]
-{
-    def dataType: DataType = Text;
+case class DateValue(name: String, value: Option[Date]) extends NamedGeneratedValue[Date] {
+  override def dataType = Date
 }
 
-case class DecimalValue(name: String, value: Option[BigDecimal], decimalPlaces: Int)
-  extends NamedTypedGeneratedValue[BigDecimal]
-{
-    def dataType: DataType = Decimal(decimalPlaces);
+case object NullValue extends NamedGeneratedValue[NoType.type] {
+  override val dataType = NoType
+  override type ScalaType = this.type
+
+  override def value: Option[NoType.type] = None
+
+  def name: String = "<NULL>"
 }
 
-case class FloatValue(name: String, value: Option[BigDecimal]) extends NamedTypedGeneratedValue[BigDecimal]
-{
-    def dataType: DataType = Float;
-
-}
-
-case class DateValue(name: String, value: Option[Date]) extends NamedTypedGeneratedValue[Date]
-{
-    def dataType: DataType = DateType;
-}
-
-object NullValue extends NamedTypedGeneratedValue[Nothing]
-{
-    def dataType: DataType = NoType;
-
-    def value = None;
-
-    def name: String = "<NULL>"
-}
-
-
-class valueFunction(gval: GeneratedValue) extends Function0[GeneratedValue]
-{
-    override
-    def apply(): GeneratedValue =
-    {
-        gval
-    }
-}
-
-object nullObjectFunction extends ValueFunction
-{
-    override
-    def apply() =
-    {
-        NullValue
-    }
+class valueFunction[I](gval: GeneratedValue[I]) extends (() => GeneratedValue[I]) {
+  override def apply(): GeneratedValue[I] = gval
 }
