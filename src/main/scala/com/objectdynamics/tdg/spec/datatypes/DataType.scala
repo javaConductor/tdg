@@ -13,6 +13,7 @@ import com.objectdynamics.tdg.generators._
   *
   */
 trait IDataTypeObject {
+  val name: String
   def toString(v: GeneratedValue[_]): String = ""
 
   def objectFromString(strRep: String): Option[ScalaClass] = None
@@ -46,7 +47,6 @@ object DataType {
 sealed trait DataType[I] extends IDataTypeObject {
   override type ScalaClass = I
 }
-
 
 /**
   * The type for all NULL fields

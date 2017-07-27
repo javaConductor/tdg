@@ -12,7 +12,7 @@ import com.objectdynamics.tdg.spec.datatypes._
 trait IDataField /*[+D <: IDataTypeObject ]*/ {
   val name: String
   val fieldType: FieldType
-  val dataType: IDataTypeInstance
+  val dataType: IDataTypeObject
 
   def data: Option[List[_]] = None
 
