@@ -8,9 +8,9 @@ import com.objectdynamics.tdg.util.LogContributor
 /**
   * This class represents a Table in a RDBS or Collection in NO-SQL Data Store.
   */
-case class DataSet(dataObjSpec: IDataSetSpec,
-                   dataRows: List[IDataRow])
-  extends IDataSet with LogContributor {
+case class DefaultDataSet(dataObjSpec: IDataSetSpec,
+                          dataRows: List[DataRow])
+  extends DataSet with LogContributor {
 
   override def name = dataObjectSpec.name
 
@@ -19,15 +19,15 @@ case class DataSet(dataObjSpec: IDataSetSpec,
 
   //def dataRows(): List = withRows.toList
 
-  def add(dataRow: IDataRow) = this + dataRow;
+  def add(dataRow: DataRow) = this + dataRow;
 
-  def +(dr: IDataRow): IDataSet = new DataSet(dataObjectSpec, dr :: rows)
+  def +(dr: DataRow): DataSet = new DefaultDataSet(dataObjectSpec, dr :: rows)
 
-  def rows: List[IDataRow] = dataRows;
+  def rows: List[DataRow] = dataRows;
 
-  def +(r: List[IDataRow]): IDataSet = new DataSet(dataObjectSpec, r ::: rows);
+  def +(r: List[DataRow]): DataSet = new DefaultDataSet(dataObjectSpec, r ::: rows);
 
-  def row(i: Int): Option[IDataRow] = {
+  def row(i: Int): Option[DataRow] = {
 
     if (i < rows.size) {
       //val d = withRows(i);

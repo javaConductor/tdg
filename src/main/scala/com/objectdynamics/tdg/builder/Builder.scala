@@ -3,8 +3,8 @@ package com.objectdynamics.tdg.builder
 import java.util.Date
 
 import com.objectdynamics.tdg.builder.model._
-import com.objectdynamics.tdg.generators.{Ctxt, GeneratedValue, IntValue}
-import com.objectdynamics.tdg.model.{DataRow, TestData}
+import com.objectdynamics.tdg.generators.{BuilderContext, GeneratedValue, IntValue}
+import com.objectdynamics.tdg.model.{DefaultDataRow, TestData}
 import com.objectdynamics.tdg.parser.model._
 import com.objectdynamics.tdg.schema.TestDataSchema
 import com.objectdynamics.tdg.spec.datatypes.{DataType, IntType}
@@ -18,8 +18,14 @@ import scalaz._
   */
 trait Builder {
   def build(buildRequest: BuildRequest,
+            testDataSchema: TestDataSchema): BuilderException \/ ITestData
+  def buildDataSet(ctxt: BuilderContext, testData: ITestData, treeRequest: TreeRequest, dss: IDataSetSpec): BuilderException \/ ITestData
+}
+
+class DefaultBuilder extends Builder {
+  override def build(buildRequest: BuildRequest,
             testDataSchema: TestDataSchema): BuilderException \/ ITestData = {
-    val ctxt: Ctxt = createContext
+    val ctxt: BuilderContext = createContext
     val testData: ITestData = TestData(Set())
 
     // get the data set if its in the schema
@@ -29,13 +35,13 @@ trait Builder {
     }
 
     testDataOpt match {
-      case Some(x: BuilderException \/ ITestData) => x
+      case Some(x) => x
       case _ => -\/(new BuilderException(s"No such data set: ${buildRequest.rootRequest.dataSetName}"))
     }
 
   }
 
-  def buildDataSet(ctxt: Ctxt, testData: ITestData, treeRequest: TreeRequest, dss: IDataSetSpec): BuilderException \/ ITestData =
+  override def buildDataSet(ctxt: BuilderContext, testData: ITestData, treeRequest: TreeRequest, dss: IDataSetSpec): BuilderException \/ ITestData =
     DataSetBuilder.build(ctxt, testData, treeRequest, dss)
 
   def createContext() = {
@@ -45,7 +51,7 @@ trait Builder {
 
     def getCtxt(k: String): Option[Any] = ctxtMap.get(k)
 
-    new Ctxt {
+    new BuilderContext {
       override val set: (String, Any) => Unit = setCtxt
       override val get: (String) => Option[Any] = getCtxt
     }
@@ -54,17 +60,17 @@ trait Builder {
 }
 
 trait DataSetBuilder {
-  def build(ctxt: Ctxt, testData: ITestData, treeRequest: TreeRequest, dataSetSpec: IDataSetSpec): BuilderException \/ ITestData
+  def build(ctxt: BuilderContext, testData: ITestData, treeRequest: TreeRequest, dataSetSpec: IDataSetSpec): BuilderException \/ ITestData
 }
 
 object DataSetBuilder {
-  def build(ctxt: Ctxt, testData: ITestData, treeRequest: TreeRequest, dataSetSpec: IDataSetSpec): BuilderException \/ ITestData =
+  def build(ctxt: BuilderContext, testData: ITestData, treeRequest: TreeRequest, dataSetSpec: IDataSetSpec): BuilderException \/ ITestData =
     new DefaultDataSetBuilder().build(ctxt, testData, treeRequest, dataSetSpec)
 }
 
 class DefaultDataSetBuilder() extends DataSetBuilder {
 
-  override def build(ctxt: Ctxt,
+  override def build(ctxt: BuilderContext,
                      testData: ITestData,
                      treeRequest: TreeRequest,
                      dataSetSpec: IDataSetSpec): \/[BuilderException, ITestData] = {
@@ -80,7 +86,7 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     }
   }
 
-  def build(ctxt: Ctxt,
+  def build(ctxt: BuilderContext,
             testData: ITestData,
             treeRequest: TreeRequest,
             dataSetSpec: IDataSetSpec,
@@ -111,10 +117,10 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
 
   }
 
-  def buildDataSet(ctxt: Ctxt,
-                   dataSet: IDataSet,
+  def buildDataSet(ctxt: BuilderContext,
+                   dataSet: DataSet,
                    nRows: Long,
-                   generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ IDataSet = {
+                   generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ DataSet = {
 
     if (nRows == 0) {
       \/-(dataSet)
@@ -127,10 +133,10 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     }
   }
 
-  def generateRow(ctxt: Ctxt,
+  def generateRow(ctxt: BuilderContext,
                   dataSetSpec: IDataSetSpec,
-                  dataRow: IDataRow,
-                  generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ IDataRow = {
+                  dataRow: DataRow,
+                  generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ DataRow = {
 
     generators match {
       case Nil => \/-(dataRow)
@@ -145,10 +151,10 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     }
   }
 
-  def buildDataRow(ctxt: Ctxt,
+  def buildDataRow(ctxt: BuilderContext,
                    dataSetSpec: IDataSetSpec,
-                   generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ IDataRow =
-    generateRow(ctxt, dataSetSpec, DataRow(dataSetSpec, "", Map.empty), generators)
+                   generators: Seq[(IDataField, FieldGenerator[_])]): BuilderException \/ DataRow =
+    generateRow(ctxt, dataSetSpec, DefaultDataRow(dataSetSpec, "", Map.empty), generators)
 
 
   def selectGenerators(dataSetSpec: IDataSetSpec,
@@ -191,10 +197,10 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
   * ***********************************************************************************************/
 trait FieldGenerator[I <: DataType[_]] {
 
-  def init(ctxt: Ctxt, dataField: IDataField, dataSetName: String,
+  def init(ctxt: BuilderContext, dataField: IDataField, dataSetName: String,
            nRows: Long, fldGenConstraints: FieldGenConstraints): Unit
 
-  def generate(ctxt: Ctxt, dataRow: IDataRow, dataField: IDataField,
+  def generate(ctxt: BuilderContext, dataRow: DataRow, dataField: IDataField,
                dataSetName: String): BuilderException \/ GeneratedValue[_]
 
   def canGenerate(dataField: IDataField, fieldGenConstraints: FieldGenConstraints): Boolean
@@ -231,27 +237,31 @@ class IntegerGenerator extends BaseGenerator[IntType]("RandomInteger") {
 
   sealed trait Strategy
 
+  object NoStrategy extends Strategy
   object BetweenStrategy extends Strategy
 
   object ListStrategy extends Strategy
 
   object SameValueStrategy extends Strategy
 
-  case class GenContext(min: BigInt, max: BigInt, list: Seq[BigInt], last: BigInt, strategy: Strategy) {
-    def this() = this(BigInt(Int.MinValue), BigInt(Int.MaxValue), List.empty, 0)
+  object GenContext {
+    def  instance:GenContext = GenContext(BigInt(-1), BigInt(-1), List.empty, BigInt(-1), NoStrategy)
   }
+  case class GenContext(min: BigInt, max: BigInt, list: Seq[BigInt], last: BigInt, strategy: Strategy)
 
-  override def init(ctxt: Ctxt,
+  override def init(ctxt: BuilderContext,
                     dataField: IDataField,
                     dataSetName: String,
                     nRows: Long,
                     fldGenConstraints: FieldGenConstraints): Unit = {
 
     /// determine strategy
-    val gc = fldGenConstraints.fldGenSpecs.foldLeft(GenContext) { (gc: GenContext, fldGenContraint) =>
+    val gc = fldGenConstraints.fldGenSpecs.foldLeft(GenContext.instance  ) { (gc: GenContext, fldGenContraint) =>
       fldGenContraint match {
         case BetweenSpec(start, end) =>
-          gc.copy(min = BigInt(start), max = BigInt(end), strategy = if (start == end) SameValueStrategy else BetweenStrategy)
+          gc.copy(min = BigInt(start),
+            max = BigInt(end),
+            strategy = if (start == end) SameValueStrategy else BetweenStrategy)
         case InSpec(l) =>
           if (l.size == 1)
             gc.copy(min = BigInt(l.head), max = BigInt(l.head), strategy = SameValueStrategy)
@@ -263,6 +273,7 @@ class IntegerGenerator extends BaseGenerator[IntType]("RandomInteger") {
       }
 
     }
+
     val ctxtPrefix = prefix(name, dataSetName, dataField.name)
     ctxt.set(ctxtPrefix, gc)
   }
@@ -270,7 +281,7 @@ class IntegerGenerator extends BaseGenerator[IntType]("RandomInteger") {
   val rand = new Random(new Date().getTime)
 
   def generateValue(gc: GenContext, ctxtPrefix: String,
-                    dataRow: IDataRow, dataField: IDataField,
+                    dataRow: DataRow, dataField: IDataField,
                     dataSetName: String): (GenContext, BuilderException \/ GeneratedValue[_]) = {
 
     gc.strategy match {
@@ -290,8 +301,8 @@ class IntegerGenerator extends BaseGenerator[IntType]("RandomInteger") {
     }
   }
 
-  override def generate(ctxt: Ctxt,
-                        dataRow: IDataRow,
+  override def generate(ctxt: BuilderContext,
+                        dataRow: DataRow,
                         dataField: IDataField,
                         dataSetName: String): BuilderException \/ GeneratedValue[_] = {
 

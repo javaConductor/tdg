@@ -9,46 +9,19 @@ package com.objectdynamics.tdg.parser.model
   */
 
 sealed trait FieldGenConstraint {
-  def size(): Int
+//  def size(): Int
 }
 
-case class BetweenSpec(min: String, max: String) extends FieldGenConstraint {
+case class BetweenSpec(min: Long, max: Long) extends FieldGenConstraint
 
-  def size(): Int = max.toInt - min.toInt + 1
-}
+case class InSpec(data: Seq[String]) extends FieldGenConstraint
 
-case class InSpec(data: Seq[String]) extends FieldGenConstraint {
-  def size(): Int = data size
-}
-
-case class EqSpec(value: String) extends FieldGenConstraint {
-  def size(): Int = 1
-}
-
-//case class LtSpec(value: String) extends FieldGenConstraint
-//{
-//    def size(): Int = 1;
-//}
-//
-//case class GtSpec(value: String) extends FieldGenConstraint
-//{
-//    def size(): Int = 1;
-//}
-//
-//case class LteSpec(value: String) extends LtSpec(value)
-//{
-//    def size(): Int = 1;
-//}
-//
-//case class GteSpec(value: String) extends GtSpec(value)
-//{
-//    def size(): Int = 1;
-//}
+case class EqSpec(value: String) extends FieldGenConstraint
 
 case class FieldGenConstraints(fieldName: String, fldGenSpecs: Set[FieldGenConstraint]) {
   def getBetweenSpec: Option[BetweenSpec] = {
     fldGenSpecs.find {
-      case BetweenSpec(min: String, max: String) => true
+      case BetweenSpec(min: Long, max: Long) => true
       case _ => false
     }.asInstanceOf[Option[BetweenSpec]]
 

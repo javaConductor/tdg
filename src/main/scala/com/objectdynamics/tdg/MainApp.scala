@@ -31,6 +31,6 @@ object MainApp //extends Application
     */
   def main(args: Array[String]) {
 
-    new BuildRunner(tstArray).toString;
+    //new BuildRunner(tstArray).toString;
   }
 }

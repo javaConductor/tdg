@@ -19,16 +19,16 @@ import com.objectdynamics.tdg.builder.model._
   * Y <: IDataSet[B, C, D, E, Z],
   * Z <: IDataRow[B, C, D, E]]
   */
-case class TestData(dataSets: Set[IDataSet])
+case class TestData(dataSets: Set[DataSet])
   extends ITestData {
 
-  val dsMap: Map[String, IDataSet] = dataSets map { ds => ds.name -> ds } toMap
+  val dsMap: Map[String, DataSet] = dataSets map { ds => ds.name -> ds } toMap
 
-  def +(ds: IDataSet): ITestData = withDataSet(ds)
+  def +(ds: DataSet): ITestData = withDataSet(ds)
 
-  def dataSet(dsName: String): Option[IDataSet] = dsMap.get(dsName);
+  def dataSet(dsName: String): Option[DataSet] = dsMap.get(dsName);
 
   def dataSetList = this.dataSets.toList
 
-  def withDataSet(dataSet: IDataSet) = TestData(dataSets.map { ds => if (dataSet.name == ds.name) dataSet else ds })
+  def withDataSet(dataSet: DataSet) = TestData(dataSets.map { ds => if (dataSet.name == ds.name) dataSet else ds })
 }

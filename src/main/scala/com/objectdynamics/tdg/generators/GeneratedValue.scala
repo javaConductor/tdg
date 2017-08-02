@@ -19,6 +19,8 @@ sealed trait GeneratedValue[T <: DataType[_]] {
   type DType = T
   type ScalaType
 
+  def name: String
+
   def dataType: T
 
   def value: Option[DType]
@@ -31,7 +33,6 @@ trait TypedValue[T] extends GeneratedValue[T] {
 }
 
 trait NamedGeneratedValue[T] extends GeneratedValue[T] {
-  def name: String
 }
 
 case class IntValue(num: Int, name: Option[String] = None) extends NamedGeneratedValue[IntType] {
@@ -58,8 +59,8 @@ case class TextValue(text: String, name: Option[String] = None) extends NamedGen
   }
 }
 
-case class DateValue(name: String, value: Option[Date]) extends NamedGeneratedValue[Date] {
-  override def dataType = Date
+case class DateValue(name: String, value: Option[Date]) extends NamedGeneratedValue[DateType] {
+  override def dataType = DateType(DateType.format)
 }
 
 case object NullValue extends NamedGeneratedValue[NoType.type] {

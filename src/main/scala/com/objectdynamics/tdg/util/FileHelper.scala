@@ -12,7 +12,7 @@ import java.io.{BufferedReader, File}
 
 object FileHelper {
 
-  def fileAsString(file: File): String = FileUtils.readFileToString(file)
+  def fileAsString(file: File): String = ""//FileUtils.readFileToString(file)
 
   def readLines(b: BufferedReader, linesSoFar: String): String = {
     b.ready match {

@@ -8,10 +8,10 @@ package com.objectdynamics.tdg.builder.model
  */
 
 trait ITestData {
-  def +(ds: IDataSet): ITestData;
+  def +(ds: DataSet): ITestData;
 
-  def dataSet(dsName: String): Option[IDataSet];
+  def dataSet(dsName: String): Option[DataSet];
 
-  def dataSetList: List[IDataSet];
+  def dataSetList: List[DataSet];
 
 }

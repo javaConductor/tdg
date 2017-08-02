@@ -68,11 +68,11 @@ object RequestParser extends JavaTokenParsers {
   def betweenSpec: Parser[FieldGenConstraint] = betweenDtSpec | betweenNumberSpec;
 
   def betweenNumberSpec: Parser[FieldGenConstraint] = ("between" ~> number ~ "," ~ number) ^^ {
-    case min ~ cma ~ max => BetweenSpec(min, max)
+    case min ~ cma ~ max => BetweenSpec(min.toInt, max.toInt)
   }
 
   def betweenDtSpec: Parser[FieldGenConstraint] = ("between" ~> dateValue ~ "," ~ dateValue) ^^ {
-    case min ~ cma ~ max => BetweenSpec(min, max)
+    case min ~ cma ~ max => BetweenSpec(min.toInt, max.toInt)
   }
 
   def fldGenConstraint: Parser[FieldGenConstraint] = (betweenSpec | inSpec | eqSpec)
@@ -80,7 +80,7 @@ object RequestParser extends JavaTokenParsers {
   def fldGenConstraintList: Parser[List[FieldGenConstraint]] = repsep(fldGenConstraint, "+")
 
   def fldSpec: Parser[FieldGenConstraints] = fieldValue ~ fldGenConstraintList ^^ {
-    case fldName ~ segList => FieldGenConstraints(fldName, segList);
+    case fldName ~ segList => FieldGenConstraints(fldName, segList.toSet);
   }
 
   def fldGenSpecList: Parser[Map[String, FieldGenConstraints]] = repsep(fldSpec, "and") ^^ {
@@ -103,7 +103,7 @@ object RequestParser extends JavaTokenParsers {
         case Some(treeReqList: List[TreeRequest]) => treeReqList
         case _ => List[TreeRequest]();
       }
-      new BuildRequest(dsName, cnt, specf);
+      new BuildRequest(specf.head,  cnt, specf);
 
   }
 
@@ -139,7 +139,7 @@ object RequestParser extends JavaTokenParsers {
         case _ => Map[String, FieldGenConstraints]();
       }
       //TreeRequest()
-      List(TreeRequest(ds, rows, cnd, None, None, strees, uniq));
+      List(TreeRequest ( ds, rows, cnd, None, None, false ));
   }
 
   def multipleTreeRequests: Parser[List[TreeRequest]] = "(" ~> repsep(treeRequest, ",") <~ ")" ^^ {

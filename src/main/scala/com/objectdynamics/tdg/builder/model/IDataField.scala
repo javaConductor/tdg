@@ -11,7 +11,7 @@ import com.objectdynamics.tdg.spec.datatypes._
 
 trait IDataField /*[+D <: IDataTypeObject ]*/ {
   val name: String
-  val fieldType: FieldType
+  val fieldType: FieldType[_]
   val dataType: IDataTypeObject
 
   def data: Option[List[_]] = None
@@ -22,7 +22,7 @@ trait IDataField /*[+D <: IDataTypeObject ]*/ {
 
   def suffix: Option[String] = None
 
-  @deprecated
-  def makeLike(name: String): IDataField
+  //@deprecated
+  //def makeLike(name: String): IDataField
 
 }

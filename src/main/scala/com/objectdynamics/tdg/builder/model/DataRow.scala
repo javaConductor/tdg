@@ -8,8 +8,7 @@ import com.objectdynamics.tdg.generators._
  * Date: 3/9/11
  * Time: 12:42 AM
  */
-
-trait IDataRow {
+trait DataRow {
 
   def dss: IDataSetSpec
 
@@ -25,13 +24,13 @@ trait IDataRow {
 
   def complete: Boolean
 
-  def +(fldValue: NamedGeneratedValue[_]): IDataRow
+  def +(fldValue: NamedGeneratedValue[_]): DataRow
 
-  def +(dataItem: (String, GeneratedValue[_])): IDataRow
+  def +(dataItem: (String, GeneratedValue[_])): DataRow
 
-  def withDataRenamedTo(newNameMap: Map[String, String]): IDataRow
+  def withDataRenamedTo(newNameMap: Map[String, String]): DataRow
 
-  def withFields(fldNames: Set[String]): IDataRow
+  def withFields(fldNames: Set[String]): DataRow
 
   def hasFields(fldNames: Set[String]): Boolean
 

@@ -18,3 +18,5 @@ libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 libraryDependencies += ("org.scala-stm" %% "scala-stm" % "0.8")
 libraryDependencies += "org.scalaz" % "scalaz-core_2.12" % "7.2.14"
+
+libraryDependencies += "junit" % "junit" % "4.12" % "test"

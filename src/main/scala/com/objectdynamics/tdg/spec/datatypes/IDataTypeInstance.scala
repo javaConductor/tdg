@@ -15,7 +15,7 @@ trait IDataTypeInstance {
   def fromString(s: String): Option[_];
 
   //def toString(datum: Option[_]): String;
-  def toString(datum: GeneratedValue): String;
+  def toString(datum: GeneratedValue[_]): String;
 
   def objectFromString(strRep: String): Option[scalaClass];
   //def generatedValueFromString(strRep: String): GeneratedValue

@@ -1,18 +1,18 @@
 package com.objectdynamics.tdg.test
 
-import org.junit.runner.RunWith
-import org.specs.runner.JUnitSuiteRunner
-import org.specs._
-import com.objectdynamics.tdg.spec.datatypes._
+import com.objectdynamics.tdg.builder.model._
 import com.objectdynamics.tdg.generators._
 import com.objectdynamics.tdg.spec._
-import com.objectdynamics.tdg.builder._
-import com.objectdynamics.tdg.builder.model._
+import com.objectdynamics.tdg.spec.datatypes._
+import org.scalatest.{FlatSpec, Matchers}
 
-@RunWith(classOf[JUnitSuiteRunner])
-class GeneratorTest extends SpecificationWithJUnit
-{
-    var ctxtMap: Map[String, Any] = Map[String, Any]();
+class GeneratorTest  extends FlatSpec with Matchers {
+
+
+    "A Stack" should "pop values in last-in-first-out order" in {
+
+    }
+      var ctxtMap: Map[String, Any] = Map[String, Any]();
 
     def setCtxt(k: String, v: Any) =
     {
@@ -24,7 +24,7 @@ class GeneratorTest extends SpecificationWithJUnit
         ctxtMap.get(k);
     }
 
-    val ctxt: Ctxt = new Ctxt(setCtxt, getCtxt);
+    val ctxt: BuilderContext = new BuilderContext(setCtxt, getCtxt);
 
     implicit val emptyGenParms: GeneratorParameters = DefaultGenParameters;
     "can generate Rotating Strings" in

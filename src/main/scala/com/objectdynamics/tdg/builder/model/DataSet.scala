@@ -8,15 +8,15 @@ package com.objectdynamics.tdg.builder.model
  */
 ;
 
-trait IDataSet {
+trait DataSet {
   //def this(dss:B, withRows:List[Z]){}
-  def row(idx: Int): Option[IDataRow];
+  def row(idx: Int): Option[DataRow];
 
-  def rows: List[IDataRow];
+  def rows: List[DataRow];
 
-  def +(r: IDataRow): IDataSet;
+  def +(r: DataRow): DataSet;
 
-  def +(r: List[IDataRow]): IDataSet;
+  def +(r: List[DataRow]): DataSet;
 
   def name: String;
 

@@ -55,8 +55,8 @@ object NoType extends DataType[_] {
   val name: String = "No Such Type!"
 }
 
-case class IntType() extends DataType[BigInt]("Int") {
-  val name = "Int"
+case class IntType(val name:String = "Int") extends DataType[BigInt] {
+
 
   override def fromString(s: String): Option[ScalaClass] = {
     if (s == null) {
@@ -151,7 +151,10 @@ case object Float extends DataType[BigDecimal] {
   };
 };
 
-case class DateType(format: String = "yyyy/MM/dd hh:mm:ss") extends DataType[java.util.Date] {
+object DateType{
+  val format: String = "yyyy/MM/dd hh:mm:ss"
+}
+case class DateType(val format: String = DateType.format) extends DataType[java.util.Date] {
   type scalaOptClass = Option[java.util.Date]
   val name = "Date"
 
@@ -178,5 +181,5 @@ case class DateType(format: String = "yyyy/MM/dd hh:mm:ss") extends DataType[jav
     }
   }
 
-};
+}
 

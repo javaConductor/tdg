@@ -6,19 +6,21 @@
  */
 package com.objectdynamics.tdg.builder.model
 
-;
-
-sealed trait FieldType {
-
+sealed trait FieldType[T] {
+type ScalaType = T
   //TODO add to/from String methods
-
 }
 
-object ASingleValue extends FieldType
+case class UnknownType() extends FieldType[Nothing]
+case class ScalaInt() extends FieldType[Int]
+case class  ScalaString() extends FieldType[String]
+case class  ScalaFloat() extends FieldType[Float]
+case class  ScalaDouble() extends FieldType[Double]
+case class  ScalaBoolean() extends FieldType[Boolean]
+case class ScalaSeq[T](content:FieldType[T]) extends FieldType[Seq[T]]
+case class ScalaMap(keyType:FieldType[_],valueType:FieldType[_]) extends FieldType[Map[_,_]]
 
-object AnObjectArray extends FieldType
+case class ScalaType[T](c: Class[T]) extends FieldType[T]
 
-object AValueArray extends FieldType
-
-object AnObject extends FieldType
-
+object FieldTypes{
+}
