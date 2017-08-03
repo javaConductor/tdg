@@ -19,6 +19,14 @@ import com.objectdynamics.tdg.builder.model._
   * Y <: IDataSet[B, C, D, E, Z],
   * Z <: IDataRow[B, C, D, E]]
   */
+trait ITestData {
+  def +(ds: DataSet): ITestData;
+
+  def dataSet(dsName: String): Option[DataSet];
+
+  def dataSetList: List[DataSet];
+
+}
 case class TestData(dataSets: Set[DataSet])
   extends ITestData {
 
