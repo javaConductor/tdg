@@ -1,16 +1,14 @@
 package com.objectdynamics.tdg.spec
 
 import com.objectdynamics.tdg.builder.model._
-import com.objectdynamics.tdg.spec.datatypes._
 
 case class DataField(name: String,
-                     dataType: DataType[_],
+                     dataType: DataType,
                      uniqueIn: Boolean,
                      dataIn: Option[List[String]]
                     ) extends IDataField {
-  val fieldType: FieldType[_] = UnknownType()
 
-  def this(name: String, dataType: DataType[_]) = {
+  def this(name: String, dataType: DataType) = {
     this(name, dataType, false, None)
   }
 

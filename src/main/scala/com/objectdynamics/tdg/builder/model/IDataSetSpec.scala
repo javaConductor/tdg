@@ -7,8 +7,6 @@ trait IDataSetSpec {
   val name: String
   var dataSetType: DataSetType
 
-  def isNormal(fldName: String): Boolean
-
   def fields: List[IDataField]
 
   def field(fldName: String): Option[IDataField]

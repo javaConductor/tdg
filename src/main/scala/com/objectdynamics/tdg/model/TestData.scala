@@ -5,7 +5,7 @@
 
 package com.objectdynamics.tdg.model
 
-import com.objectdynamics.tdg.builder.model._
+import com.objectdynamics.tdg.builder.model.{DataSet, DefaultDataSet}
 
 /**
   * This class represents one generations worth of generated data.
@@ -19,24 +19,34 @@ import com.objectdynamics.tdg.builder.model._
   * Y <: IDataSet[B, C, D, E, Z],
   * Z <: IDataRow[B, C, D, E]]
   */
-trait ITestData {
-  def +(ds: DataSet): ITestData;
 
-  def dataSet(dsName: String): Option[DataSet];
+trait TestData[DSType <: DataSet[_,_]] {
+  type DS = DSType
 
-  def dataSetList: List[DataSet];
+  def +(ds: DS): TestData[DS]
+
+  def dataSet(dsName: String): Option[DS]
+
+  def dataSetList: Seq[DS]
 
 }
-case class TestData(dataSets: Set[DataSet])
-  extends ITestData {
 
-  val dsMap: Map[String, DataSet] = dataSets map { ds => ds.name -> ds } toMap
+/**
+  * This class represents one generations worth of generated data.
+  *
+  */
+case class DefaultTestData(dataSets: Seq[DefaultDataSet])
+  extends TestData[DefaultDataSet] {
 
-  def +(ds: DataSet): ITestData = withDataSet(ds)
+  def this() = this(Seq[DefaultDataSet]())
+  val dsMap: Map[String, DefaultDataSet] = dataSets map { ds => ds.name -> ds } toMap
 
-  def dataSet(dsName: String): Option[DataSet] = dsMap.get(dsName);
+  def +(ds: DS): TestData[DS] = withDataSet(ds)
 
-  def dataSetList = this.dataSets.toList
+  def dataSet(dsName: String): Option[DefaultDataSet] = dsMap.get(dsName);
 
-  def withDataSet(dataSet: DataSet) = TestData(dataSets.map { ds => if (dataSet.name == ds.name) dataSet else ds })
+  def dataSetList = this.dataSets
+
+  def withDataSet(dataSet: DS) =
+    DefaultTestData(dataSets.map { ds => if (dataSet.name == ds.name) dataSet else ds })
 }

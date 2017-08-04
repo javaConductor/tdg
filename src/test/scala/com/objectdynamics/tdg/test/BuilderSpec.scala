@@ -1,9 +1,9 @@
 package com.objectdynamics.tdg.test
 
+import com.objectdynamics.tdg.builder.model.ScalaInt
 import com.objectdynamics.tdg.builder.{BuildRequest, DefaultBuilder}
 import com.objectdynamics.tdg.parser.model.{BetweenSpec, FieldGenConstraints, TreeRequest}
 import com.objectdynamics.tdg.schema.TestDataSchema
-import com.objectdynamics.tdg.spec.datatypes.IntType
 import com.objectdynamics.tdg.spec.{DataField, DataSetSpec}
 import org.scalatest._
 
@@ -19,11 +19,11 @@ class BuilderSpec extends FlatSpec with Matchers {
   val bldrReq = BuildRequest(treeRequest, 10)
   "A Builder" should "build 10 values" in {
 
-    val fields = List( new DataField( "id",IntType()))
+    val fields = List( new DataField( "id", ScalaInt()))
     val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
     val testDataSchema = new TestDataSchema("test", dataSetSpecs)
     new DefaultBuilder().build(bldrReq, testDataSchema) match {
-      case -\/(err) => fail()
+      case -\/(err) => println(s"Error:  $err");fail()
       case \/-(testData) => testData.dataSetList.head.rows.size should be(10)
     }
   }
