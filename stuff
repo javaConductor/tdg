@@ -1,0 +1,79 @@
+// Start writing your ScalaFiddle code here
+import shapeless._, record._, syntax.singleton._
+import shapeless.Generic
+
+case class Person(name: String, age: Int)
+case class Animal(name: String, legs: Int)
+// defined class Person
+
+val p1 = Person("John", 30)
+val dog = Animal("fluffy", 4)
+
+implicit val genPerson = LabelledGeneric[Person]
+implicit val genDog = LabelledGeneric[Animal]
+
+println(s"genPerson $genPerson")
+
+val reprP1 = genPerson.to(p1)
+val reprD1 = genDog.to(dog)
+
+reprP1.get('name)
+
+val r = Record(age = 99, name = "Chris")
+
+
+r.to
+
+r.toMap
+/// changing 'age to 'legs also changed the implicit choice to Animal
+val litP =
+  ('name ->> "John") ::
+    ('legs ->> 30) ::
+    HNil
+
+genPerson.from(reprP1)
+
+def extractor[T, Repr](in: Repr)(
+    implicit gen: LabelledGeneric.Aux[T, Repr]): T = {
+  gen.from(in)
+
+}
+
+println (s"lit rec: $r")
+
+
+println (r)
+println (reprP1)
+println (reprD1)
+println (litP)
+
+//println (extractor (r) )
+println (extractor(reprP1))
+println(extractor(reprD1))
+println(extractor(litP))
+
+
+object size extends Poly1 {
+  
+  
+  implicit def casePerson = at[Person](p => s"${p.name} is ${p.age} years old.")
+  implicit def caseInt = at[Int](age => s"${age} years old.")
+  implicit def caseString = at[String](s => s"Person is ${s}")
+  implicit def caseTuple[T, U]
+    (implicit st : Case.Aux[T, Int], su : Case.Aux[U, Int]) =
+      at[(T, U)](t => st(t._1) + su(t._2))
+}
+
+println (size(p1) )
+println ("*" * 100)
+
+ println (r.mapValues( size ) )
+ println (reprP1.mapValues( size ) )
+ println (reprD1.mapValues( size ) )
+ println (litP.mapValues( size ) )
+
+/*
+implicit  val m = Mapper[litP, String :: Int :: HNil]
+ 
+
+*/
