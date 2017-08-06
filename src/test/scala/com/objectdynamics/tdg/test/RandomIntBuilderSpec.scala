@@ -149,7 +149,7 @@ class RandomIntBuilderSpec extends FlatSpec with Matchers {
     val x = new valueFunction(row.data(str) )()
         x match {
           case Some(n:Int) => {
-            println(s"$str: $n")
+            //println(s"$str: $n")
             n  <= hi && n  >= low
           }
           case _ => {
@@ -165,7 +165,7 @@ class RandomIntBuilderSpec extends FlatSpec with Matchers {
       case i:Option[Int] => {
         i match {
           case Some(n:Int) => {
-            println(s"$str: $n")
+            //println(s"$str: $n")
             nums.contains(n)
           }
           case _ => {

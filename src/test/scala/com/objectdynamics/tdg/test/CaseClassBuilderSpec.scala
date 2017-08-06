@@ -15,7 +15,7 @@ import scalaz.{-\/, \/-}
 /**
   * Created by lee on 7/25/17.
   */
-class RandomStringBuilderSpec extends FlatSpec with Matchers {
+class CaseClassBuilderSpec extends FlatSpec with Matchers {
 
 
   "A Builder" should "build 50000 values with name from list and age between 20 and 80" in {
@@ -79,6 +79,9 @@ class RandomStringBuilderSpec extends FlatSpec with Matchers {
         }) should be(true)
 
         case class Person(name:String, age:Int)
+        /// use some method to get Person instances generated
+        /// Not the one below
+
         val ll = new ListBuffer[Person]
         rows.foreach((dr) => {
           val name = new valueFunction(dr.data("name") )().get
