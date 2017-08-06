@@ -17,15 +17,14 @@ import scalaz.{-\/, \/-}
 class RandomStringBuilderSpec extends FlatSpec with Matchers {
 
 
-  "A Builder" should "build 50000 values between -1000 and 2000" in {
+  "A Builder" should "build 50000 values with name from list and age between 20 and 80" in {
     val n = 50000
-    val lo = -1000
-    val hi = 2000
+    val lo = 20
+    val hi = 80
     val names = List("Lee","David", "Henry", "Cassandra", "Steve", "Prince Planet", "Ruby", "Tony")
-    val ages = List(43,56,25,52,3,55)
     val constraints = Map(
       "name" -> FieldGenConstraints("name", Set(InSpec(names))),
-      "age" -> FieldGenConstraints("age", Set(BetweenSpec(20, 80)))
+      "age" -> FieldGenConstraints("age", Set(BetweenSpec(lo, hi)))
     )
     val treeRequest=TreeRequest( "person",n, constraints,None,None )
     val bldrReq = BuildRequest(treeRequest, n)
@@ -43,7 +42,7 @@ class RandomStringBuilderSpec extends FlatSpec with Matchers {
         val rows: List[DataRow] = testData.dataSetList.head.rows
         rows.forall((dr) => {
           checkValueIn(dr, "name", names) &&
-            checkValueBetween(dr, "age", 20, 80)
+            checkValueBetween(dr, "age", lo, hi)
         }) should be(true)
       }
     }
