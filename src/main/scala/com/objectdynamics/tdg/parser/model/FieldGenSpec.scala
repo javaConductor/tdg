@@ -14,7 +14,7 @@ sealed trait FieldGenConstraint {
 
 case class BetweenSpec(min: Long, max: Long) extends FieldGenConstraint
 
-case class InSpec(data: Seq[Int]) extends FieldGenConstraint
+case class InSpec[T](data: Seq[T]) extends FieldGenConstraint
 
 case class EqSpec(value: String) extends FieldGenConstraint
 
@@ -27,11 +27,11 @@ case class FieldGenConstraints(fieldName: String, fldGenSpecs: Set[FieldGenConst
 
   }
 
-  def getInSpec: Option[InSpec] = {
+  def getInSpec[T]: Option[InSpec[T]] = {
     fldGenSpecs.find {
-      case InSpec(data: List[String]) => true
+      case InSpec(data: List[T]) => true
       case _ => false
-    }.asInstanceOf[Option[InSpec]]
+    }.asInstanceOf[Option[InSpec[T]]]
   }
 
   def getEqSpec: Option[EqSpec] = {

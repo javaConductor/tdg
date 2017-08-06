@@ -1,6 +1,6 @@
 package com.objectdynamics.tdg.generators
 
-import com.objectdynamics.tdg.spec.datatypes.{DataType, ScalaInt, UnknownType}
+import com.objectdynamics.tdg.spec.datatypes.{DataType, ScalaInt, ScalaString, UnknownType}
 
 /**
   * Created by IntelliJ IDEA.
@@ -37,6 +37,17 @@ case class IntValue(num: Int, name: String) extends  GeneratedValue[Int] {
 
   override def value: Option[ScalaType] = {
     Some(num)
+  }
+}
+
+
+case class StringValue(str: String, name: String) extends  GeneratedValue[String] {
+  override type ScalaType = String
+
+  override def dataType  = ScalaString()
+
+  override def value: Option[ScalaType] = {
+    Some(str)
   }
 }
 

@@ -14,7 +14,7 @@ import scalaz.{-\/, \/-}
 /**
   * Created by lee on 7/25/17.
   */
-class BuilderSpec extends FlatSpec with Matchers {
+class RandomIntBuilderSpec extends FlatSpec with Matchers {
 
   "A Builder" should "build 10 values" in {
 
@@ -99,6 +99,26 @@ class BuilderSpec extends FlatSpec with Matchers {
     }
   }
 
+  "A Builder" should "build 50 values in list 42" in {
+    val n = 50
+    val nums = List(42)
+    val constraints = Map("id" -> FieldGenConstraints("id", Set(InSpec(nums))))
+    val treeRequest = TreeRequest( "person",n, constraints, None, None )
+    val bldrReq = BuildRequest(treeRequest, n)
+    val fields = List( new DataField( "id", ScalaInt()))
+    val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
+    val testDataSchema = TestDataSchema("test", dataSetSpecs)
+    println(s"TestDataSchema: $testDataSchema")
+    println (s"Person: ${testDataSchema.dssMap("person")}" )
+    new DefaultBuilder().build(bldrReq, testDataSchema) match {
+      case -\/(err) => println(s"Error:  $err");fail()
+      case \/-(testData) => {
+        val rows = testData.dataSetList.head.rows
+        rows.forall(  checkValueIn( _, "id", nums ) ) should be(true)
+      }
+    }
+  }
+
   "A Builder" should "build 50000 values between 100 and 200 and 500 to 600" in {
     val n = 50000
     val lo = 100
@@ -127,9 +147,7 @@ class BuilderSpec extends FlatSpec with Matchers {
 
   def checkValueBetween(row: DataRow, str: String, low: Int, hi: Int): Boolean = {
     val x = new valueFunction(row.data(str) )()
-    x match {
-      case i:Option[Int] => {
-        i match {
+        x match {
           case Some(n:Int) => {
             println(s"$str: $n")
             n  <= hi && n  >= low
@@ -140,13 +158,6 @@ class BuilderSpec extends FlatSpec with Matchers {
           }
         }
       }
-      case _ => {
-        println(s"Error: $str: $x")
-        false
-      }
-    }
-  }
-
 
   def checkValueIn(row: DataRow, str: String, nums: List[Int]): Boolean = {
     val x = new valueFunction(row.data(str) )()

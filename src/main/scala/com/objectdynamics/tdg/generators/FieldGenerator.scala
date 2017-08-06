@@ -29,5 +29,8 @@ object FieldGenerator {
 
 
 object FieldGeneratorList {
-  def generators: Seq[FieldGenerator] = List(new IntegerGenerator())
+  def generators: Seq[FieldGenerator] = List(
+    new IntegerGenerator(),
+    new StringGenerator()
+  )
 }
