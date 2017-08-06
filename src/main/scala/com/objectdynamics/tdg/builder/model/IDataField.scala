@@ -1,5 +1,7 @@
 package com.objectdynamics.tdg.builder.model
 
+import com.objectdynamics.tdg.spec.datatypes.DataType
+
 /*
  * Created by IntelliJ IDEA.
  * User: Lee

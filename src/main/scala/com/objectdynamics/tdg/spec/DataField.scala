@@ -1,6 +1,7 @@
 package com.objectdynamics.tdg.spec
 
 import com.objectdynamics.tdg.builder.model._
+import com.objectdynamics.tdg.spec.datatypes.DataType
 
 case class DataField(name: String,
                      dataType: DataType,
@@ -18,11 +19,8 @@ case class DataField(name: String,
 
   override def toString: String = "DataField(" + name + "," + dataType + ")"
 
-
   def withUnique(u: Boolean): DataField = {
     this.copy(uniqueIn = u)
   }
 
-  //@deprecated
-  //def makeLike(name: String): DataField = DataField(name, dataType, prefix, suffix, unique, data)
 }

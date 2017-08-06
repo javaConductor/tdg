@@ -10,5 +10,5 @@ import com.objectdynamics.tdg.parser.model.TreeRequest
   */
 
 case class BuildRequest(rootRequest: TreeRequest, nRows: Int, specifics: List[TreeRequest] = List.empty) {
-  def hasSpecifics: Boolean = !specifics.isEmpty;
+  def hasSpecifics: Boolean = specifics.nonEmpty
 }

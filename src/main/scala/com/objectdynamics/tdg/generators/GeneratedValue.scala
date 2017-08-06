@@ -1,6 +1,6 @@
 package com.objectdynamics.tdg.generators
 
-import com.objectdynamics.tdg.builder.model.{DataType, ScalaInt, UnknownType}
+import com.objectdynamics.tdg.spec.datatypes.{DataType, ScalaInt, UnknownType}
 
 /**
   * Created by IntelliJ IDEA.

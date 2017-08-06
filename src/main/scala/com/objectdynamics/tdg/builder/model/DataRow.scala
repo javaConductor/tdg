@@ -17,7 +17,7 @@ trait DataRow {
   def value(fldName: String): Option[GeneratedValue[_]] = {
     val f: String = fldName
     data(f) match {
-      case (generatedValue) => Some(generatedValue)
+      case (generatedValue:GeneratedValue[_]) => Some(generatedValue)
       case _ => None
     }
   }

@@ -4,7 +4,7 @@
  * Date: 3/13/11
  * Time: 1:54 AM
  */
-package com.objectdynamics.tdg.builder.model
+package com.objectdynamics.tdg.spec.datatypes
 
 import com.objectdynamics.tdg.builder.BuilderException
 import org.joda.time.DateTime
