@@ -96,7 +96,11 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
     gc.strategy match {
       case SameValueStrategy => (gc, \/-(IntValue(gc.min.toInt, dataField.name)))
       case BetweenStrategy => {
-        val value = IntValue( gc.min.toInt + (rand.nextDouble * (gc.max.toInt - gc.min.toInt)).toInt,
+
+        val range = ( gc.max - gc.min).abs
+        val x= rand.nextDouble
+        val offset = x * range.toLong
+        val value = IntValue( (gc.min.toLong + (offset)).toInt,
           dataField.name)
         (gc, \/-(value))
       }

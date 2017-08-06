@@ -6,6 +6,7 @@ import com.objectdynamics.tdg.model.{DefaultTestData, TestData}
 import com.objectdynamics.tdg.parser.model._
 import com.objectdynamics.tdg.schema.TestDataSchema
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scalaz._
 
@@ -108,7 +109,7 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     buildDataSet(ctxt, new DefaultDataSet(dataSetSpec, List[DataRow]()), treeRequest.rows, generators)
   }
 
-  def buildDataSet(ctxt: BuilderContext,
+  @tailrec final def buildDataSet(ctxt: BuilderContext,
                    dataSet: DefaultDataSet,
                    nRows: Long,
                    generators: Seq[(IDataField, FieldGenerator)]): BuilderException \/ DefaultDataSet = {

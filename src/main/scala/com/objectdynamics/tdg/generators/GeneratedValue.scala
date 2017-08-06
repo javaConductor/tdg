@@ -50,3 +50,32 @@ case class NullValue() extends GeneratedValue[Nothing] {
 class valueFunction[U](gval: GeneratedValue[U]) extends (() => Option[U]) {
   override def apply(): Option[U] = gval.value
 }
+
+
+trait ValueExtractor[T] {
+  def value(v:GeneratedValue[T]) : Option[T]
+
+}
+
+object Extractors {
+}
+
+class BaseExtractor[T] extends ValueExtractor[T] {
+  def value(v:GeneratedValue[T]) : Option[T] = {
+    v.value
+  }
+}
+object ValueExtractor {
+
+  implicit object IntExtractor extends ValueExtractor[Int] {
+    def value(v:GeneratedValue[Int]) : Option[Int] = {
+      v.value
+    }
+  }
+
+
+  def value[T](v:GeneratedValue[T])(implicit extractor: ValueExtractor[T]) = {
+    extractor.value(v)
+  }
+
+}
