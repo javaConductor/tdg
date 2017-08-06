@@ -132,7 +132,9 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
 
     generators match {
         /// Handle base case
-      case Nil => \/-(dataRow)
+      case Nil => {
+        \/-(dataRow)
+      }
       case h :: t => {
         val df = h._1
         val fg = h._2

@@ -34,23 +34,7 @@ class BuilderSpec extends FlatSpec with Matchers {
     }
   }
 
-  def checkValueBetween(row: DataRow, str: String, low: Int, hi: Int): Boolean = {
-    val x = new valueFunction(row.data("id") )()
-    x match {
-      case i:Option[Int] => {
-        i match {
-          case Some(n:Int) => {
-            println(s"n: $n")
-            n  <= hi && n  >= low
-          }
-          case _ => false
-        }
-      }
-      case _ => false
-    }
-  }
-
-  "A Builder" should "build 10 values between 100 and 200" in {
+  "A Builder" should "build 50000 values between -1000 and 2000" in {
     val n = 50000
     val lo = -1000
     val hi = 2000
@@ -71,4 +55,72 @@ class BuilderSpec extends FlatSpec with Matchers {
     }
   }
 
+  "A Builder" should "build 50000 values between -10000 and -2000" in {
+    val n = 50000
+    val lo = -10000
+    val hi = -2000
+    val constraints = Map("id" -> FieldGenConstraints("id", Set(BetweenSpec(lo, hi))))
+    val treeRequest=TreeRequest( "person",n, constraints,None,None )
+    val bldrReq = BuildRequest(treeRequest, n)
+    val fields = List( new DataField( "id", ScalaInt()))
+    val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
+    val testDataSchema = TestDataSchema("test", dataSetSpecs)
+    println(s"TestDataSchema: $testDataSchema")
+    println (s"Person: ${testDataSchema.dssMap("person")}" )
+    new DefaultBuilder().build(bldrReq, testDataSchema) match {
+      case -\/(err) => println(s"Error:  $err");fail()
+      case \/-(testData) => {
+        val rows = testData.dataSetList.head.rows
+        rows.forall(  checkValueBetween( _, "id", lo, hi ) ) should be(true)
+      }
+    }
+  }
+
+  "A Builder" should "build 50000 values between 100 and 200 and 500 to 600" in {
+    val n = 50000
+    val lo = 100
+    val hi = 200
+    val lo2 = 500
+    val hi2 = 600
+    val constraints = Map("id" -> FieldGenConstraints("id", Set(BetweenSpec(lo, hi))),
+    "customerId" -> FieldGenConstraints("customerId", Set(BetweenSpec(lo2, hi2))))
+    val treeRequest=TreeRequest( "person",n, constraints,None,None )
+    val bldrReq = BuildRequest(treeRequest, n)
+    val fields = List( new DataField( "id", ScalaInt()),new DataField( "customerId", ScalaInt()))
+    val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
+    val testDataSchema = TestDataSchema("test", dataSetSpecs)
+    println(s"TestDataSchema: $testDataSchema")
+    println (s"Person: ${testDataSchema.dssMap("person")}" )
+    new DefaultBuilder().build(bldrReq, testDataSchema) match {
+      case -\/(err) => println(s"Error:  $err");fail()
+      case \/-(testData) => {
+        val rows = testData.dataSetList.head.rows
+        rows.forall((dr) => {
+          checkValueBetween( dr, "id", lo, hi ) &&
+            checkValueBetween( dr, "customerId", lo2, hi2 )  }) should be(true)
+      }
+    }
+  }
+
+  def checkValueBetween(row: DataRow, str: String, low: Int, hi: Int): Boolean = {
+    val x = new valueFunction(row.data(str) )()
+    x match {
+      case i:Option[Int] => {
+        i match {
+          case Some(n:Int) => {
+            println(s"$str: $n")
+            n  <= hi && n  >= low
+          }
+          case _ => {
+            println(s"Error: $str: $x")
+            false
+          }
+        }
+      }
+      case _ => {
+        println(s"Error: $str: $x")
+        false
+      }
+    }
+  }
 }
