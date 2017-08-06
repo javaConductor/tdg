@@ -62,7 +62,7 @@ object RequestParser extends JavaTokenParsers {
 
 
   def inSpec: Parser[FieldGenConstraint] = "in" ~> valueList ^^ {
-    case vList => InSpec(vList)
+    case vList => InSpec(vList.map(_.toInt))
   }
 
   def betweenSpec: Parser[FieldGenConstraint] = betweenDtSpec | betweenNumberSpec;

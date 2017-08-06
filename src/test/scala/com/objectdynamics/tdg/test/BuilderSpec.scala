@@ -3,7 +3,7 @@ package com.objectdynamics.tdg.test
 import com.objectdynamics.tdg.builder.model.DataRow
 import com.objectdynamics.tdg.builder.{BuildRequest, DefaultBuilder}
 import com.objectdynamics.tdg.generators.valueFunction
-import com.objectdynamics.tdg.parser.model.{BetweenSpec, FieldGenConstraints, TreeRequest}
+import com.objectdynamics.tdg.parser.model.{BetweenSpec, FieldGenConstraints, InSpec, TreeRequest}
 import com.objectdynamics.tdg.schema.TestDataSchema
 import com.objectdynamics.tdg.spec.datatypes.ScalaInt
 import com.objectdynamics.tdg.spec.{DataField, DataSetSpec}
@@ -76,6 +76,29 @@ class BuilderSpec extends FlatSpec with Matchers {
     }
   }
 
+
+  "A Builder" should "build 50000 values in list 1,3,5,7,11,13,17,23,29,31,37,43" in {
+    val n = 50000
+    val lo = -10000
+    val hi = -2000
+    val nums = List(1,3,5,7,11,13,17,23,29,31,37,43)
+    val constraints = Map("id" -> FieldGenConstraints("id", Set(InSpec(nums))))
+    val treeRequest = TreeRequest( "person",n, constraints, None, None )
+    val bldrReq = BuildRequest(treeRequest, n)
+    val fields = List( new DataField( "id", ScalaInt()))
+    val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
+    val testDataSchema = TestDataSchema("test", dataSetSpecs)
+    println(s"TestDataSchema: $testDataSchema")
+    println (s"Person: ${testDataSchema.dssMap("person")}" )
+    new DefaultBuilder().build(bldrReq, testDataSchema) match {
+      case -\/(err) => println(s"Error:  $err");fail()
+      case \/-(testData) => {
+        val rows = testData.dataSetList.head.rows
+        rows.forall(  checkValueIn( _, "id", nums ) ) should be(true)
+      }
+    }
+  }
+
   "A Builder" should "build 50000 values between 100 and 200 and 500 to 600" in {
     val n = 50000
     val lo = 100
@@ -123,4 +146,29 @@ class BuilderSpec extends FlatSpec with Matchers {
       }
     }
   }
+
+
+  def checkValueIn(row: DataRow, str: String, nums: List[Int]): Boolean = {
+    val x = new valueFunction(row.data(str) )()
+    x match {
+      case i:Option[Int] => {
+        i match {
+          case Some(n:Int) => {
+            println(s"$str: $n")
+            nums.contains(n)
+          }
+          case _ => {
+            println(s"Error: $str: $x")
+            false
+          }
+        }
+      }
+      case _ => {
+        println(s"Error: $str: $x")
+        false
+      }
+    }
+
+  }
+
 }

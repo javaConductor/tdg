@@ -74,7 +74,7 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
               strategy = if (start == end) SameValueStrategy else BetweenStrategy)
           case InSpec(l) =>
             if (l.size == 1)
-              gc.copy(min = BigInt(l.head), max = BigInt(l.head), strategy = SameValueStrategy)
+              gc.copy( min = BigInt(l.head), max = BigInt(l.head), strategy = SameValueStrategy)
             else
               gc.copy(list = l.map((i) => BigInt(i)), strategy = ListStrategy)
           case EqSpec(n) =>
@@ -96,7 +96,6 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
     gc.strategy match {
       case SameValueStrategy => (gc, \/-(IntValue(gc.min.toInt, dataField.name)))
       case BetweenStrategy => {
-
         val range = ( gc.max - gc.min).abs
         val x= rand.nextDouble
         val offset = x * range.toLong
@@ -107,7 +106,7 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
       case ListStrategy => {
         val min = 0
         val max = gc.list.size
-        val idx = min + (rand.nextDouble * (max - min)).toInt
+        val idx = min + (rand.nextDouble * (max - min )).toInt
         val value = IntValue(gc.list(idx).toInt, dataField.name)
         (gc, \/-(value))
       }

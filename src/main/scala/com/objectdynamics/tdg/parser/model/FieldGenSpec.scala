@@ -14,7 +14,7 @@ sealed trait FieldGenConstraint {
 
 case class BetweenSpec(min: Long, max: Long) extends FieldGenConstraint
 
-case class InSpec(data: Seq[String]) extends FieldGenConstraint
+case class InSpec(data: Seq[Int]) extends FieldGenConstraint
 
 case class EqSpec(value: String) extends FieldGenConstraint
 
