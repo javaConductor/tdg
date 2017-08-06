@@ -17,21 +17,26 @@ import scalaz.{-\/, \/, \/-}
   * ***********************************************************************************************/
 class StringGenerator extends BaseGenerator("StringGen") {
   type U = String
-  override def canGenerate(dataField: IDataField, fieldGenConstraints: FieldGenConstraints): Boolean = {
+  override def canGenerate(dataField: IDataField, fieldGenConstraints: Option[FieldGenConstraints]): Boolean = {
     dataField.dataType match {
       case _: ScalaString => {
+        if(fieldGenConstraints.isEmpty)
+          false /// string needs some guidance
+        else {
         /// look thru the constraints for one unsupported
-        fieldGenConstraints.fldGenSpecs.find {
+        fieldGenConstraints.get.fldGenSpecs.find {
           case InSpec(_) => false
           case EqSpec(_) => false
           case _ => true
         } match {
           /// if an unsupported constraint is found then return false else true
           case Some(constraint) => {
-            println(s"Generator $name does not support constraint: $constraint"); false
+            println(s"Generator $name does not support constraint: $constraint");
+            false
           }
           case _ => true
         }
+      }
       }
       /// if its not an String then NO!
       case _ => false

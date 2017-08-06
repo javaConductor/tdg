@@ -74,10 +74,20 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
         case -\/(err) => -\/(err)
         case \/-(dataRow:DefaultDataRow) =>
           buildDataSet(ctxt, dataSet + dataRow, nRows - 1, generators)
+        case _ => -\/( new BuilderException(s"Internal error: Bad value from buildDataRoe( $ctxt, ${dataSet.dataObjectSpec}, $generators ) "))
       }
     }
   }
 
+
+  /**
+    * Internal recursive function for generating values for the specified dataSetSpec
+    * @param ctxt
+    * @param dataSetSpec
+    * @param dataRow
+    * @param generators Generators to use for each field
+    * @return
+    */
   @tailrec private def generateRow(ctxt: BuilderContext,
                   dataSetSpec: IDataSetSpec,
                   dataRow: DataRow,
@@ -88,11 +98,15 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
       case Nil => {
         \/-(dataRow)
       }
+      /// dataRow is not complete so we generate the next value
       case h :: t => {
         val df = h._1
         val fg = h._2
+        // generate the value
         fg.generate(ctxt, dataRow, df, dataSetSpec.name) match {
+            /// if we hit an error return it
           case -\/(err) => -\/(err)
+            /// if we generated a value then lets do the next one
           case \/-(generatedValue) => generateRow(ctxt, dataSetSpec, dataRow + generatedValue, t)
         }
       }
@@ -104,20 +118,26 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
                    generators: Seq[(IDataField, FieldGenerator)]): BuilderException \/ DataRow =
     generateRow(ctxt, dataSetSpec, DefaultDataRow(dataSetSpec, "", Map.empty), generators)
 
+  /**
+    * Returns a Seq of dataField->fieldGenerator pairs for a dataSetSpec
+    * Generators must be able to handle the fieldGenConstraints
+    *
+    * @param dataSetSpec
+    * @param fieldGenConstraints
+    * @return \/(BuilderException, Seq[(IDataField, FieldGenerator)])
+    */
   def selectGenerators(dataSetSpec: IDataSetSpec,
                        fieldGenConstraints: Map[String, FieldGenConstraints])
   : BuilderException \/ Seq[(IDataField, FieldGenerator)] = {
-    val namesAndEither = dataSetSpec.fields.zip(dataSetSpec.fields.map {
+    // Find willing generators and zip it with the associated DataField
+    val fieldsAndGenerators = dataSetSpec.fields.zip(dataSetSpec.fields.map {
       (df) =>
-        selectGenerator(dataSetSpec,
-          df,
-          fieldGenConstraints.getOrElse(df.name,
-            FieldGenConstraints(df.name, Set())))
+        selectGenerator(dataSetSpec, df, fieldGenConstraints.get(df.name))
     })
 
-    val startValue:(List[BuilderException], List[(IDataField, FieldGenerator)]) =
-      (List[BuilderException](), List[(IDataField, FieldGenerator)]())
-    namesAndEither.foldLeft(startValue)((acc, r) => {
+    // fold over the fld/generators Seq extracting errors
+    val startValue = (List[BuilderException](), List[(IDataField, FieldGenerator)]())
+    fieldsAndGenerators.foldLeft(startValue)((acc, r) => {
       val dataField: IDataField = r._1
       r._2 match {
         case -\/(e) => (e :: acc._1, acc._2)
@@ -126,14 +146,24 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     }
     ) match {
       case (Nil, h :: t) => \/-(h :: t)
-      case (h :: _, _) => -\/(h)
+      case (Nil, Nil) => -\/(new BuilderException(s"Internal Error: No Generators found for dataSetSpec: $dataSetSpec"))
+      case (errors :: _, _) => -\/(errors)
     }
 
   }
 
+  /**
+    * Selects a Generator for the specified DataField capable of specified constraints
+    *
+    * @param dataSetSpec
+    * @param dataField
+    * @param fieldGenConstraints
+    *
+    * @return  BuilderException \/ FieldGenerator
+    */
   def selectGenerator(dataSetSpec: IDataSetSpec,
                       dataField: IDataField,
-                      fieldGenConstraints: FieldGenConstraints): BuilderException \/ FieldGenerator = {
+                      fieldGenConstraints: Option[FieldGenConstraints]): BuilderException \/ FieldGenerator = {
     FieldGeneratorList.generators.find { gen =>
       gen.canGenerate(dataField, fieldGenConstraints)
     } match {
@@ -142,4 +172,3 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     }
   }
 }
-

@@ -9,6 +9,7 @@ import com.objectdynamics.tdg.spec.datatypes.{ScalaInt, ScalaString}
 import com.objectdynamics.tdg.spec.{DataField, DataSetSpec}
 import org.scalatest._
 
+import scala.collection.mutable.ListBuffer
 import scalaz.{-\/, \/-}
 
 /**
@@ -44,6 +45,49 @@ class RandomStringBuilderSpec extends FlatSpec with Matchers {
           checkValueIn(dr, "name", names) &&
             checkValueBetween(dr, "age", lo, hi)
         }) should be(true)
+      }
+    }
+  }
+
+
+  "A Builder" should "build 50000 and create case classes the hard way" in {
+    val n = 50000
+    val lo = 20
+    val hi = 80
+    val names = List("Lee","David", "Henry", "Cassandra", "Steve", "Prince Planet", "Ruby", "Tony")
+    val constraints = Map(
+      "name" -> FieldGenConstraints("name", Set(InSpec(names))),
+      "age" -> FieldGenConstraints("age", Set(BetweenSpec(lo, hi)))
+    )
+    val treeRequest=TreeRequest( "person",n, constraints,None,None )
+    val bldrReq = BuildRequest(treeRequest, n)
+    val fields = List(
+      new DataField( "name", ScalaString()),
+      new DataField( "age", ScalaInt())
+    )
+    val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
+    val testDataSchema = TestDataSchema("test", dataSetSpecs)
+    println(s"TestDataSchema: $testDataSchema")
+    println (s"Person: ${testDataSchema.dssMap("person")}" )
+    new DefaultBuilder().build(bldrReq, testDataSchema) match {
+      case -\/(err) => println(s"Error:  $err");fail()
+      case \/-(testData) => {
+        val rows: List[DataRow] = testData.dataSetList.head.rows
+        rows.forall((dr) => {
+          checkValueIn(dr, "name", names) &&
+            checkValueBetween(dr, "age", lo, hi)
+        }) should be(true)
+
+        case class Person(name:String, age:Int)
+        val ll = new ListBuffer[Person]
+        rows.foreach((dr) => {
+          val name = new valueFunction(dr.data("name") )().get
+          val age = new valueFunction(dr.data("age") )().get
+            ll.append(Person ( name.asInstanceOf[String],age.asInstanceOf[Int]))
+        })
+        ll.toList.foreach((p) => {
+          println(s"Person: $p")
+        })
       }
     }
   }

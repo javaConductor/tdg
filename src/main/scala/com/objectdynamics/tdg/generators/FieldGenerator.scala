@@ -17,7 +17,7 @@ trait FieldGenerator {
   def generate(ctxt: BuilderContext, dataRow: DataRow, dataField: IDataField,
                dataSetName: String): BuilderException \/ GeneratedValue[_]
 
-  def canGenerate(dataField: IDataField, fieldGenConstraints: FieldGenConstraints): Boolean
+  def canGenerate(dataField: IDataField, fieldGenConstraints: Option[FieldGenConstraints]): Boolean
 }
 
 abstract class BaseGenerator(val name: String) extends FieldGenerator {
