@@ -5,11 +5,15 @@ import com.objectdynamics.tdg.builder.{BuildRequest, DefaultBuilder}
 import com.objectdynamics.tdg.generators.valueFunction
 import com.objectdynamics.tdg.parser.model.{BetweenSpec, FieldGenConstraints, InSpec, TreeRequest}
 import com.objectdynamics.tdg.schema.TestDataSchema
-import com.objectdynamics.tdg.spec.datatypes.{ScalaInt, ScalaString}
+import com.objectdynamics.tdg.spec.datatypes.{Default, ScalaInt, ScalaString}
 import com.objectdynamics.tdg.spec.{DataField, DataSetSpec}
 import org.scalatest._
+import shapeless.HNil
+import shapeless.record.Record
+import shapeless.syntax.singleton.mkSingletonOps
 
 import scala.collection.mutable.ListBuffer
+import scala.reflect.runtime.universe._
 import scalaz.{-\/, \/-}
 
 /**
@@ -50,7 +54,7 @@ class CaseClassBuilderSpec extends FlatSpec with Matchers {
   }
 
 
-  "A Builder" should "build 50000 and create case classes the hard way" in {
+  "A Builder" should "build 50000 and create case classes the easy way" in {
     val n = 50000
     val lo = 20
     val hi = 80
@@ -78,10 +82,27 @@ class CaseClassBuilderSpec extends FlatSpec with Matchers {
             checkValueBetween(dr, "age", lo, hi)
         }) should be(true)
 
-        case class Person(name:String, age:Int)
-        /// use some method to get Person instances generated
-        /// Not the one below
+        case  class Person(name:String, age:Int)
 
+        val r = Record()
+        weakTypeOf[Person].members.foreach((m) => {
+          if (m.isTerm && !m.isMethod) {
+
+            (Symbol(m.fullName) ->> Default.value[m.NameType]) ::
+              ('name ->>  "John") ::
+              ('legs ->> 30) ::
+              HNil
+
+
+            println( s"$m")
+            println( s"${m.asTerm}")
+          }
+
+        })
+        /// get the dataSetSpec from case class X
+        /// parse the treeRequest
+        /// build the rows
+        /// convert them to a Stream[X]
         val ll = new ListBuffer[Person]
         rows.foreach((dr) => {
           val name = new valueFunction(dr.data("name") )().get

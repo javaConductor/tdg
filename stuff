@@ -52,10 +52,8 @@ println (extractor(reprP1))
 println(extractor(reprD1))
 println(extractor(litP))
 
-
 object size extends Poly1 {
-  
-  
+
   implicit def casePerson = at[Person](p => s"${p.name} is ${p.age} years old.")
   implicit def caseInt = at[Int](age => s"${age} years old.")
   implicit def caseString = at[String](s => s"Person is ${s}")
@@ -74,6 +72,5 @@ println ("*" * 100)
 
 /*
 implicit  val m = Mapper[litP, String :: Int :: HNil]
- 
 
 */
