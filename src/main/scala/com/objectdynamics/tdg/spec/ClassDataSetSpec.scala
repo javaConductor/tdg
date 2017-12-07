@@ -17,8 +17,11 @@ object ClassDataSetSpec {
   def defaultForType[T](implicit tag: WeakTypeTag[T], defVal: Default[T]): T = {
     defVal.default
   }
-  def fieldToDataField(field: Field) : IDataField  = {
-    new DataField(field.getName, classToDataType(field.getDeclaringClass))
+  def fieldToDataField(field: Field) : Option[IDataField]  = {
+    classToDataType(field.getDeclaringClass) match {
+      case Some(dt:DataType) =>     Some(new DataField( field.getName,dt ))
+      case _ => None
+    }
   }
 
 DataType.simpleTypes
@@ -35,8 +38,8 @@ DataType.simpleTypes
     validTypes.contains(field.getDeclaringClass.getName)
   }
 
-  def classToDataType[T](clazz: Class[T]) : DataType = {
-    DataType.fromString(clazz.getName, 0)
+  def classToDataType[T](clazz: Class[T]) : Option[DataType] = {
+    DataType.fromString(clazz.getName)
   }
 
   def apply[T](clazz: Class[T]): ClassDataSetSpec[T] = {
@@ -45,7 +48,7 @@ DataType.simpleTypes
     val dsName = clazz.getName
 
     // get the seq of DataFields from the fields
-    val dataFields: Set[IDataField] = fields.map(fieldToDataField)
+    val dataFields: Set[IDataField] = fields.map(fieldToDataField).filter(!_.isEmpty).map(_.get)
     new ClassDataSetSpec(clazz, dsName, dataFields)
   }
 }
