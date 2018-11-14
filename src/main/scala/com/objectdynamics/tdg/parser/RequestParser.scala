@@ -54,7 +54,7 @@ object RequestParser extends JavaTokenParsers {
 
   def valueList: Parser[List[String]] = "(" ~ repsep(value, ",") ~ ")" ^^ {
     case "(" ~ lst ~ ")" => (lst);
-  };
+  }
 
   def eqSpec: Parser[FieldGenConstraint] = "eq" ~> value ^^ {
     case vList => EqSpec(vList)

@@ -15,7 +15,7 @@ trait FieldGenerator {
            nRows: Long, fldGenConstraints: FieldGenConstraints): Unit
 
   def generate(ctxt: BuilderContext, dataRow: DataRow, dataField: IDataField,
-               dataSetName: String): BuilderException \/ GeneratedValue[_]
+               dataSetName: String): BuilderException \/ GeneratedValue
 
   def canGenerate(dataField: IDataField, fieldGenConstraints: Option[FieldGenConstraints]): Boolean
 }

@@ -87,7 +87,7 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
 
   def generateValue(gc: GenContext, ctxtPrefix: String,
                     dataRow: DataRow, dataField: IDataField,
-                    dataSetName: String): (GenContext, BuilderException \/ GeneratedValue[U]) = {
+                    dataSetName: String): (GenContext, BuilderException \/ GeneratedValue) = {
 
     gc.strategy match {
       case SameValueStrategy => (gc, \/-(StringValue(gc.list.head, dataField.name)))
@@ -105,7 +105,7 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
   override def generate(ctxt: BuilderContext,
                         dataRow: DataRow,
                         dataField: IDataField,
-                        dataSetName: String): BuilderException \/ GeneratedValue[U] = {
+                        dataSetName: String): BuilderException \/ GeneratedValue = {
 
     val ctxtPrefix = prefix(name, dataSetName, dataField.name)
     ctxt.get(ctxtPrefix) match {

@@ -3,90 +3,40 @@ package com.objectdynamics.tdg.generators
 import com.objectdynamics.tdg.spec.datatypes.{DataType, ScalaInt, ScalaString, UnknownType}
 
 /**
-  * Created by IntelliJ IDEA.
-  * User: lcollins
-  * Date: 8/9/11
-  * Time: 1:19 AM
-  * To change this template use File | Settings | File Templates.
-  */
-
-/**
   * holds ONE generated field
   */
-sealed trait GeneratedValue[U] {
-  type ScalaType = U
+sealed trait GeneratedValue {
 
   def name: String
-
   def dataType: DataType
-  def apply:Option[U] = value
-  def value: Option[U]
+
+  def apply = value
+  //def apply[T] = as[T]
+
+  def as[T](implicit valueExtractor: ValueExtractor[T]): T  = {valueExtractor.value(this)}
+  def value: String
 }
-//
-//  object GeneratedValues {
-//    def nullValue() = new NullValue
-//    def intValue(num: Int) = new IntValue(num)
-//}
 
-case class IntValue(num: Int, name: String) extends  GeneratedValue[Int] {
-  override type ScalaType = Int
-
-  override def dataType: ScalaInt = {
-    ScalaInt()
-  }
-
-  override def value: Option[ScalaType] = {
-    Some(num)
-  }
+case class IntValue(num: Int, name: String) extends GeneratedValue {
+  override def dataType =  ScalaInt()
+  override def value: String = num.toString
 }
 
 
-case class StringValue(str: String, name: String) extends  GeneratedValue[String] {
-  override type ScalaType = String
+case class StringValue(str: String, name: String) extends GeneratedValue {
 
-  override def dataType  = ScalaString()
+  override def dataType = ScalaString()
 
-  override def value: Option[ScalaType] = {
-    Some(str)
-  }
+  override def value: String = str
 }
 
-case class NullValue() extends GeneratedValue[Nothing] {
+case class NullValue() extends GeneratedValue {
   override val dataType = UnknownType
-  override type ScalaType = Nothing
-  override def value = None
+
+  override def value:Nothing = ???
+
   def name: String = "<NULL>"
 }
 
-class valueFunction[U](gval: GeneratedValue[U]) extends (() => Option[U]) {
-  override def apply(): Option[U] = gval.value
-}
 
 
-trait ValueExtractor[T] {
-  def value(v:GeneratedValue[T]) : Option[T]
-
-}
-
-object Extractors {
-}
-
-class BaseExtractor[T] extends ValueExtractor[T] {
-  def value(v:GeneratedValue[T]) : Option[T] = {
-    v.value
-  }
-}
-object ValueExtractor {
-
-  implicit object IntExtractor extends ValueExtractor[Int] {
-    def value(v:GeneratedValue[Int]) : Option[Int] = {
-      v.value
-    }
-  }
-
-
-  def value[T](v:GeneratedValue[T])(implicit extractor: ValueExtractor[T]) = {
-    extractor.value(v)
-  }
-
-}

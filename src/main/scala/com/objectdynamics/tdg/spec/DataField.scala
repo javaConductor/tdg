@@ -14,9 +14,6 @@ case class DataField(name: String,
   }
 
   override def unique: Boolean = uniqueIn
-
-  override def data: Option[List[String]] = dataIn
-
   override def toString: String = "DataField(" + name + "," + dataType + ")"
 
   def withUnique(u: Boolean): DataField = {

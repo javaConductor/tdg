@@ -10,10 +10,7 @@ import scala.reflect.runtime.universe._
 /**
   * Created by lee on 8/10/17.
   */
-
-case class DataField(val name: String,val dataType: DataType) extends IDataField
-
-object ClassDataSetSpec {
+ object ClassDataSetSpec {
   def defaultForType[T](implicit tag: WeakTypeTag[T], defVal: Default[T]): T = {
     defVal.default
   }
@@ -24,7 +21,7 @@ object ClassDataSetSpec {
     }
   }
 
-DataType.simpleTypes
+//DataType.simpleTypes
 
   val validTypes = List( classOf[Int].getName,
     classOf[Double].getName,

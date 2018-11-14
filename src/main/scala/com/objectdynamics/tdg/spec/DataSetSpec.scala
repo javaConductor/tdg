@@ -33,7 +33,7 @@ case class DataSetSpec(override val name: String,
   def isNormal(fldName: String): Boolean = true
 
   def +(df: IDataField): IDataSetSpec =
-    new DataSetSpec(name, df :: fields);
+    DataSetSpec(name, df :: fields)
 
   /**
     *

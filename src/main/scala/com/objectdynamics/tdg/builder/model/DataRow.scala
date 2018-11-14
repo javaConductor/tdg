@@ -11,20 +11,20 @@ import com.objectdynamics.tdg.util.{ListHelper, LogContributor}
 trait DataRow {
 
   def dss: IDataSetSpec
-  val data: Map[String, GeneratedValue[_]]
+  val data: Map[String, GeneratedValue]
   //def values[U]: Map[String, GeneratedValue[U,TypeDef]]
 
-  def value(fldName: String): Option[GeneratedValue[_]] = {
+  def value(fldName: String): Option[GeneratedValue] = {
     val f: String = fldName
     data(f) match {
-      case (generatedValue:GeneratedValue[_]) => Some(generatedValue)
+      case (generatedValue:GeneratedValue) => Some(generatedValue)
       case _ => None
     }
   }
 
   def complete: Boolean
 
-  def +(fldValue: GeneratedValue[_]): DataRow
+  def +(fldValue: GeneratedValue): DataRow
 
   def withDataRenamedTo(newNameMap: Map[String, String]): DataRow
 
@@ -37,7 +37,7 @@ trait DataRow {
 
 case class DefaultDataRow(dataSetSpec: IDataSetSpec,
                           objectId: String,
-                          data: Map[String, GeneratedValue[_]] = Map.empty)
+                          data: Map[String, GeneratedValue] = Map.empty)
   extends DataRow with LogContributor {
 
   var isComplete: Boolean = {
@@ -48,7 +48,7 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
 
   def this(dataSetSpec: IDataSetSpec, objectId: String) = this(dataSetSpec, objectId, Map.empty)
 
-  override def +(fldValue: GeneratedValue[_]): DataRow = {
+  override def +(fldValue: GeneratedValue): DataRow = {
     this.copy(dataSetSpec = dss, data = this.data + (fldValue.name -> fldValue))
   }
 
@@ -71,7 +71,7 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
   }
 
   //val dataField:DataField;
-  override def value(field: String): Option[GeneratedValue[_]] = data.get(field)
+  override def value(field: String): Option[GeneratedValue] = data.get(field)
 
   def withFields(flds: Set[String]): DefaultDataRow = {
     this.copy(
@@ -84,7 +84,7 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
     dataSetSpec
   }
 
-  def fieldSet(flds: Set[String]): Map[String, GeneratedValue[_]] = {
+  def fieldSet(flds: Set[String]): Map[String, GeneratedValue] = {
     hasFields(flds) match {
       case true => (flds map { fldname: String => (fldname -> value(fldname).get) }) toMap
       case false => Map.empty

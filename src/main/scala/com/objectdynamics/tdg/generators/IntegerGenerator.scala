@@ -17,6 +17,7 @@ import scalaz.{-\/, \/, \/-}
   * ***********************************************************************************************/
 class IntegerGenerator extends BaseGenerator("RandomInteger") {
   type U = Int
+
   override def canGenerate(dataField: IDataField, fieldGenConstraints: Option[FieldGenConstraints]): Boolean = {
     dataField.dataType match {
       case _: ScalaInt => {
@@ -24,22 +25,22 @@ class IntegerGenerator extends BaseGenerator("RandomInteger") {
           true
         else {
 
-        /// look thru the constraints for one unsupported
-        fieldGenConstraints.get.fldGenSpecs.find {
-          case BetweenSpec(_, _) => false
-          case InSpec(_) => false
-          case EqSpec(_) => false
-          case _ => true
-        } match {
-          /// if an unsupported constraint is found then return false else true
-          case Some(constraint) => {
-            println(s"Generator $name does not support constraint: $constraint");
-            false
+          /// look thru the constraints for one unsupported
+          fieldGenConstraints.get.fldGenSpecs.find {
+            case BetweenSpec(_, _) => false
+            case InSpec(_) => false
+            case EqSpec(_) => false
+            case _ => true
+          } match {
+            /// if an unsupported constraint is found then return false else true
+            case Some(constraint) => {
+              println(s"Generator $name does not support constraint: $constraint");
+              false
+            }
+            case _ => true
           }
-          case _ => true
-        }
 
-      }
+        }
       }
       /// if its not an Int then NO!
       case _ => false
@@ -47,13 +48,17 @@ class IntegerGenerator extends BaseGenerator("RandomInteger") {
   }
 
   sealed trait Strategy
+
   object NoStrategy extends Strategy
+
   object BetweenStrategy extends Strategy
+
   object ListStrategy extends Strategy
+
   object SameValueStrategy extends Strategy
 
   object GenContext {
-    def instance:GenContext = GenContext(BigInt(-1), BigInt(-1), List.empty, BigInt(-1), NoStrategy)
+    def instance: GenContext = GenContext(BigInt(-1), BigInt(-1), List.empty, BigInt(-1), NoStrategy)
   }
 
   case class GenContext(min: BigInt, max: BigInt, list: Seq[BigInt], last: BigInt, strategy: Strategy) {
@@ -66,28 +71,24 @@ class IntegerGenerator extends BaseGenerator("RandomInteger") {
                     nRows: Long,
                     fldGenConstraints: FieldGenConstraints): Unit = {
 
+
+    // we currently only support one of the fieldGenConstraints
     /// determine strategy
-val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
-  //GenContext ( BigInt(Int.MinValue + 1), BigInt(Int.MaxValue - 1), List.empty, BigInt(-1), BetweenStrategy)
-  GenContext ( BigInt(0), BigInt(1000), List.empty, BigInt(-1), BetweenStrategy)
- else
-    fldGenConstraints.fldGenSpecs.foldLeft(GenContext.instance) ({
-      (gc: GenContext, fldGenContraint) =>
-        fldGenContraint match {
-          case BetweenSpec(start, end) =>
-            gc.copy(min = BigInt(start),
-              max = BigInt(end),
-              strategy = if (start == end) SameValueStrategy else BetweenStrategy)
-          case InSpec(l:List[Int]) =>
-            if (l.size == 1)
-              gc.copy( min = BigInt(l.head), max = BigInt(l.head), strategy = SameValueStrategy)
-            else
-              gc.copy(list = l.map((i) => BigInt(i)), strategy = ListStrategy)
-          case EqSpec(n) =>
-            gc.copy(min = BigInt(n), max = BigInt(n), strategy = SameValueStrategy)
-          case _ => gc
-        }
-    });
+    val gc: GenContext = fldGenConstraints.fldGenSpecs.head match {
+        case BetweenSpec(min:Long , max:Long ) =>
+          GenContext(min.toInt, max.toInt, List.empty, BigInt(-1), BetweenStrategy)
+
+        case InSpec(l: List[Int]) =>
+          if (l.size == 1)
+            GenContext(BigInt(l.head), BigInt(l.head), List.empty, BigInt(-1), strategy = SameValueStrategy)
+          else
+            GenContext(BigInt(-1), BigInt(-1),l.map((i) => BigInt(i)), BigInt(-1), strategy = ListStrategy)
+
+        case EqSpec(n) =>
+          GenContext(min = BigInt(n), max = BigInt(n), List.empty, BigInt(-1), strategy = SameValueStrategy)
+
+        case _ => GenContext(BigInt(0), BigInt(1000), List.empty, BigInt(-1), BetweenStrategy)
+      }
 
     val ctxtPrefix = prefix(name, dataSetName, dataField.name)
     ctxt.set(ctxtPrefix, gc)
@@ -97,22 +98,22 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
 
   def generateValue(gc: GenContext, ctxtPrefix: String,
                     dataRow: DataRow, dataField: IDataField,
-                    dataSetName: String): (GenContext, BuilderException \/ GeneratedValue[U]) = {
+                    dataSetName: String): (GenContext, BuilderException \/ GeneratedValue) = {
 
     gc.strategy match {
       case SameValueStrategy => (gc, \/-(IntValue(gc.min.toInt, dataField.name)))
       case BetweenStrategy => {
-        val range = ( gc.max - gc.min).abs
-        val x= rand.nextDouble
+        val range = (gc.max - gc.min).abs
+        val x = rand.nextDouble
         val offset = x * range.toLong
-        val value = IntValue( (gc.min.toLong + (offset)).toInt,
+        val value = IntValue((gc.min.toLong + (offset)).toInt,
           dataField.name)
         (gc, \/-(value))
       }
       case ListStrategy => {
         val min = 0
         val max = gc.list.size
-        val idx = min + (rand.nextDouble * (max - min )).toInt
+        val idx = min + (rand.nextDouble * (max - min)).toInt
         val value = IntValue(gc.list(idx).toInt, dataField.name)
         (gc, \/-(value))
       }
@@ -123,7 +124,7 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
   override def generate(ctxt: BuilderContext,
                         dataRow: DataRow,
                         dataField: IDataField,
-                        dataSetName: String): BuilderException \/ GeneratedValue[U] = {
+                        dataSetName: String): BuilderException \/ GeneratedValue = {
 
     val ctxtPrefix = prefix(name, dataSetName, dataField.name)
     ctxt.get(ctxtPrefix) match {
