@@ -7,19 +7,6 @@ package com.objectdynamics.tdg.model
 
 import com.objectdynamics.tdg.builder.model.{DataSet, DefaultDataSet}
 
-/**
-  * This class represents one generations worth of generated data.
-  *
-  *
-  * trait ITestData[
-  * B <: IDataSetSpec,
-  * C <: IDataField,
-  * D <: IDataTypeObject,
-  * E <: IDataTypeInstance,
-  * Y <: IDataSet[B, C, D, E, Z],
-  * Z <: IDataRow[B, C, D, E]]
-  */
-
 trait TestData[DSType <: DataSet[_,_]] {
   type DS = DSType
 
@@ -41,12 +28,13 @@ case class DefaultTestData(dataSets: Seq[DefaultDataSet])
   def this() = this(Seq[DefaultDataSet]())
   val dsMap: Map[String, DefaultDataSet] = dataSets map { ds => ds.name -> ds } toMap
 
-  def +(ds: DS): TestData[DS] = withDataSet(ds)
+  def +(ds: DefaultDataSet): TestData[DefaultDataSet] = withDataSet(ds)
 
   def dataSet(dsName: String): Option[DefaultDataSet] = dsMap.get(dsName);
 
   def dataSetList = this.dataSets
 
-  def withDataSet(dataSet: DS) =
-    DefaultTestData(dataSets.map { ds => if (dataSet.name == ds.name) dataSet else ds })
+  def withDataSet(dataSet: DefaultDataSet) =
+    //TODO the last dataset with a given name wins
+    DefaultTestData((dataSet :: dataSets.toList).toSet.toList)
 }

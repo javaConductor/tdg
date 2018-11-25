@@ -5,7 +5,7 @@ import java.util.Date
 import com.objectdynamics.tdg.builder.BuilderException
 import com.objectdynamics.tdg.builder.model.{DataRow, IDataField}
 import com.objectdynamics.tdg.parser.model._
-import com.objectdynamics.tdg.spec.datatypes.ScalaInt
+import com.objectdynamics.tdg.spec.datatypes.{ScalaDouble, ScalaFloat}
 
 import scala.util.Random
 import scalaz.{-\/, \/, \/-}
@@ -15,44 +15,49 @@ import scalaz.{-\/, \/, \/-}
   * Generators
   *
   * ***********************************************************************************************/
-class IntegerGenerator extends BaseGenerator("RandomInteger") {
-  type U = Int
+class DoubleGenerator extends BaseGenerator("RandomDouble") {
+  type U = Float
 
   override def canGenerate(dataField: IDataField, fieldGenConstraints: Option[FieldGenConstraints]): Boolean = {
-    dataField.dataType match {
-      case _: ScalaInt => {
-        if (fieldGenConstraints.isEmpty)
-          true
-        else {
 
-          /// look thru the constraints for one unsupported
-          fieldGenConstraints.get.fldGenSpecs.find {
-            case BetweenSpec(_, _) => false
-            case InSpec(_) => false
-            case EqSpec(_) => false
-            case _ => true
-          } match {
-            /// if an unsupported constraint is found then return false else true
-            case Some(constraint) => {
-              println(s"Generator $name does not support constraint: $constraint");
-              false
-            }
-            case _ => true
-          }
-
-        }
+    val isDouble: Boolean = dataField.dataType match {
+      case _: ScalaDouble => {
+        true
       }
-      /// if its not an Int then NO!
+      case _: ScalaFloat => {
+        true
+      }
       case _ => false
     }
+
+    if (!isDouble) false else {
+      /// look thru the constraints for one unsupported
+      fieldGenConstraints.get.fldGenSpecs.find {
+        case BetweenSpec(_, _) => false
+        case BetweenValuesSpec(_, _) => false
+        case InSpec(_) => false
+        case EqSpec(_) => false
+        case EachSpec(_) => false
+        case _ => true
+      } match {
+        /// if an unsupported constraint is found then return false else true
+        case Some(constraint) => {
+          println(s"Generator $name does not support constraint: $constraint");
+          false
+        }
+        case _ => true
+      }
+    }
+
   }
+
 
   object GenContext {
-    def instance: GenContext = GenContext(BigInt(-1), BigInt(-1), List.empty, BigInt(-1), NoStrategy)
+    def instance: GenContext = GenContext(Double.NaN, Double.NaN, List.empty, Double.NaN, NoStrategy)
   }
 
-  case class GenContext(min: BigInt, max: BigInt, list: Seq[BigInt], last: BigInt, strategy: Strategy) {
-    def this() = this(BigInt(-1), BigInt(-1), List.empty, BigInt(-1), NoStrategy)
+  case class GenContext(min: Double, max: Double, list: Seq[Double], last: Double, strategy: Strategy) {
+    def this() = this(Double.NaN, Double.NaN, List.empty, Double.NaN, NoStrategy)
   }
 
   override def init(ctxt: BuilderContext,
@@ -65,26 +70,26 @@ class IntegerGenerator extends BaseGenerator("RandomInteger") {
     // we currently only support one of the fieldGenConstraints
     /// determine strategy
     val gc: GenContext = fldGenConstraints.fldGenSpecs.head match {
-        case BetweenSpec(min:Long , max:Long ) =>
-          GenContext(min.toInt, max.toInt, List.empty, BigInt(-1), BetweenStrategy)
+      case BetweenValuesSpec(min: Double, max: Double) =>
+        GenContext(min.toDouble, max.toDouble, List.empty, Double.NaN, BetweenStrategy)
 
-        case EachSpec(l: List[Int]) =>
-          if (l.size == 1)
-            GenContext(BigInt(l.head), BigInt(l.head), List.empty, BigInt(-1), strategy = SameValueStrategy)
-          else
-            GenContext(BigInt(-1), BigInt(-1),l.map((i) => BigInt(i)), BigInt(l.size), strategy = EachStrategy)
+      case EachSpec(l: List[Double]) =>
+        if (l.size == 1)
+          GenContext((l.head), (l.head), List.empty, Double.NaN, strategy = SameValueStrategy)
+        else
+          GenContext((l.head), (l.head), l, (l.size).toDouble, strategy = EachStrategy)
 
-        case InSpec(l: List[Int]) =>
-          if (l.size == 1)
-            GenContext(BigInt(l.head), BigInt(l.head), List.empty, BigInt(-1), strategy = SameValueStrategy)
-          else
-            GenContext(BigInt(-1), BigInt(-1),l.map((i) => BigInt(i)), BigInt(-1), strategy = ListStrategy)
+      case InSpec(l: List[Double]) =>
+        if (l.size == 1)
+          GenContext((l.head), (l.head), List.empty, Double.NaN, strategy = SameValueStrategy)
+        else
+          GenContext((l.head), (l.head), l, Double.NaN, strategy = ListStrategy)
 
-        case EqSpec(n:Int) =>
-          GenContext(min = BigInt(n), max = BigInt(n), List.empty, BigInt(-1), strategy = SameValueStrategy)
+      case EqSpec(n: Double) =>
+        GenContext(min = n, max = n, List.empty, Double.NaN, strategy = SameValueStrategy)
 
-        case _ => GenContext(BigInt(0), BigInt(1000), List.empty, BigInt(-1), BetweenStrategy)
-      }
+      case _ => GenContext(0, 1000, List.empty, Double.NaN, BetweenStrategy)
+    }
 
     val ctxtPrefix = prefix(name, dataSetName, dataField.name)
     ctxt.set(ctxtPrefix, gc)
@@ -108,10 +113,11 @@ class IntegerGenerator extends BaseGenerator("RandomInteger") {
       }
       case EachStrategy => {
         val min = 0
-        val max = gc.list.size
-        val idx = if ( gc.last.toInt >= gc.max) 0 else gc.last.toInt
+        val max = gc.list.size-1
+        // gc.last should contain the last index used
+        val idx = if (gc.last.toInt >= max) 0 else gc.last.toInt + 1
         val value = IntValue(gc.list(idx).toInt, dataField.name)
-        (gc.copy(last = BigInt(idx)), \/-(value))
+        (gc.copy(last = (idx)), \/-(value))
       }
       case ListStrategy => {
         val min = 0

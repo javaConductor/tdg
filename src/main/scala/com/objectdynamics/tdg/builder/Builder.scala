@@ -15,25 +15,40 @@ import scalaz._
 trait Builder {
   def build(buildRequest: BuildRequest,
             testDataSchema: TestDataSchema): BuilderException \/ TestData[DefaultDataSet]
+
   def buildDataSet(ctxt: BuilderContext,
                    treeRequest: TreeRequest, dss: IDataSetSpec): BuilderException \/ DefaultDataSet
 }
 
 class DefaultBuilder extends Builder {
   override def build(buildRequest: BuildRequest,
-            testDataSchema: TestDataSchema): BuilderException \/ DefaultTestData = {
+                     testDataSchema: TestDataSchema): BuilderException \/ DefaultTestData = {
     val builderContext: BuilderContext = createContext()
+    val all = if (buildRequest.hasSpecifics) buildRequest.rootRequest :: buildRequest.specifics else List(buildRequest.rootRequest)
 
-    // get the data set if its in the schema
-    testDataSchema.dssMap(buildRequest.rootRequest.dataSetName) match {
+    //TODO return error messages
+    if (!BuilderRequestValidator.validateBuildRequest(testDataSchema, buildRequest))
+      -\/(new BuilderException("Bad request."))
+    else
+      \/-(all.foldRight(DefaultTestData(Seq.empty)) { (treq, td) => {
+        handleTreeRequest(treq, testDataSchema, builderContext) match {
+          case -\/(err) => throw err
+          case \/-(ds: DefaultDataSet) => td.withDataSet(ds)
+        }
+      }
+      })
+  }
+
+  def handleTreeRequest(tr: TreeRequest, testDataSchema: TestDataSchema, builderContext: BuilderContext): BuilderException \/ DefaultDataSet = {
+    testDataSchema.dssMap(tr.dataSetName) match {
       case dss: IDataSetSpec => {
-        buildDataSet(builderContext, buildRequest.rootRequest, dss) match {
+        buildDataSet(builderContext, tr, dss) match {
           case -\/(err) => -\/(err)
-          case \/-(ds) => \/-( DefaultTestData( Seq[DefaultDataSet](ds) ) )
+          case \/-(ds: DefaultDataSet) => \/-(ds)
           case _ => -\/(new BuilderException("Bad value from dssMap"))
         }
       }
-      case _ => -\/(new BuilderException(s"No such data set: '${buildRequest.rootRequest.dataSetName}'"))
+      case _ => -\/(new BuilderException(s"No such data set: '${tr.dataSetName}'"))
     }
   }
 

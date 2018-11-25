@@ -31,6 +31,7 @@ object FieldGenerator {
 object FieldGeneratorList {
   def generators: Seq[FieldGenerator] = List(
     new IntegerGenerator(),
-    new StringGenerator()
+    new StringGenerator(),
+    new DoubleGenerator()
   )
 }

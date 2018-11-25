@@ -4,7 +4,7 @@ import java.util.Date
 
 import com.objectdynamics.tdg.builder.BuilderException
 import com.objectdynamics.tdg.builder.model.{DataRow, IDataField}
-import com.objectdynamics.tdg.parser.model.{EqSpec, FieldGenConstraints, InSpec}
+import com.objectdynamics.tdg.parser.model.{EachSpec, EqSpec, FieldGenConstraints, InSpec}
 import com.objectdynamics.tdg.spec.datatypes.ScalaString
 
 import scala.util.Random
@@ -26,6 +26,7 @@ class StringGenerator extends BaseGenerator("StringGen") {
         /// look thru the constraints for one unsupported
         fieldGenConstraints.get.fldGenSpecs.find {
           case InSpec(_) => false
+          case EachSpec(_) => false
           case EqSpec(_) => false
           case _ => true
         } match {
@@ -43,16 +44,11 @@ class StringGenerator extends BaseGenerator("StringGen") {
     }
   }
 
-  sealed trait Strategy
-  object NoStrategy extends Strategy
-  object ListStrategy extends Strategy
-  object SameValueStrategy extends Strategy
-
   object GenContext {
     def instance:GenContext = GenContext(List.empty, -1, NoStrategy)
   }
 
-  case class GenContext(list: Seq[U], lastIdx: Int, strategy: Strategy) {
+  case class GenContext(list: Seq[String], lastIdx: Int, strategy: Strategy) {
   }
 
   override def init(ctxt: BuilderContext,
@@ -68,12 +64,18 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
     fldGenConstraints.fldGenSpecs.foldLeft(GenContext.instance) ({
       (gc: GenContext, fldGenContraint) =>
         fldGenContraint match {
+          case EachSpec(l: List[String]) =>
+            if (l.size == 1)
+              GenContext( l, 0, strategy = SameValueStrategy)
+            else
+              GenContext( l, (l.size), strategy = EachStrategy)
+
           case InSpec(l:List[U]) =>
             if (l.size == 1)
               gc.copy( list = l, strategy = SameValueStrategy)
             else
               gc.copy(list = l, strategy = ListStrategy)
-          case EqSpec(n) =>
+          case EqSpec(n:String) =>
             gc.copy( list = List(n), strategy = SameValueStrategy)
           case _ => gc
         }
@@ -91,6 +93,15 @@ val gc:GenContext = if(fldGenConstraints.fldGenSpecs.isEmpty)
 
     gc.strategy match {
       case SameValueStrategy => (gc, \/-(StringValue(gc.list.head, dataField.name)))
+
+      case EachStrategy => {
+        val min = 0
+        val max = gc.list.size-1
+        // gc.last should contain the last index used
+        val idx = if (gc.lastIdx >= max) 0 else gc.lastIdx + 1
+        val value = StringValue(gc.list(idx), dataField.name)
+        (gc.copy(lastIdx = (idx)), \/-(value))
+      }
       case ListStrategy => {
         val min = 0
         val max = gc.list.size

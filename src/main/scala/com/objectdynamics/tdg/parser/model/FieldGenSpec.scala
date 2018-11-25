@@ -9,14 +9,19 @@ package com.objectdynamics.tdg.parser.model
   */
 
 sealed trait FieldGenConstraint {
-//  def size(): Int
+  //  def size(): Int
 }
 
+@Deprecated
 case class BetweenSpec(min: Long, max: Long) extends FieldGenConstraint
+
+case class BetweenValuesSpec[T](min: T, max: T) extends FieldGenConstraint
 
 case class InSpec[T](data: Seq[T]) extends FieldGenConstraint
 
-case class EqSpec(value: String) extends FieldGenConstraint
+case class EachSpec[T](data: Seq[T]) extends FieldGenConstraint
+
+case class EqSpec[T](value: T) extends FieldGenConstraint
 
 case class FieldGenConstraints(fieldName: String, fldGenSpecs: Set[FieldGenConstraint]) {
   def getBetweenSpec: Option[BetweenSpec] = {
@@ -27,6 +32,14 @@ case class FieldGenConstraints(fieldName: String, fldGenSpecs: Set[FieldGenConst
 
   }
 
+  def getBetweenValuesSpec[T]: Option[BetweenValuesSpec[T]] = {
+    fldGenSpecs.find {
+      case BetweenValuesSpec(min: T, max: T) => true
+      case _ => false
+    }.asInstanceOf[Option[BetweenValuesSpec[T]]]
+
+  }
+
   def getInSpec[T]: Option[InSpec[T]] = {
     fldGenSpecs.find {
       case InSpec(data: List[T]) => true
@@ -34,13 +47,18 @@ case class FieldGenConstraints(fieldName: String, fldGenSpecs: Set[FieldGenConst
     }.asInstanceOf[Option[InSpec[T]]]
   }
 
-  def getEqSpec: Option[EqSpec] = {
-
+  def getEachSpec[T]: Option[EachSpec[T]] = {
     fldGenSpecs.find {
-      case EqSpec(value: String) => true
+      case EachSpec(data: List[T]) => true
       case _ => false
-    }.asInstanceOf[Option[EqSpec]]
+    }.asInstanceOf[Option[EachSpec[T]]]
   }
 
+  def getEqSpec[T]: Option[EqSpec[T]] = {
+    fldGenSpecs.find {
+      case EqSpec(value: T) => true
+      case _ => false
+    }.asInstanceOf[Option[EqSpec[T]]]
+  }
 
 }

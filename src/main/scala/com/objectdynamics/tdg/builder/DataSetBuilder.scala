@@ -72,9 +72,9 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     } else {
       buildDataRow(ctxt, dataSet.dataObjectSpec, generators) match {
         case -\/(err) => -\/(err)
-        case \/-(dataRow:DefaultDataRow) =>
+        case \/-(dataRow: DefaultDataRow) =>
           buildDataSet(ctxt, dataSet + dataRow, nRows - 1, generators)
-        case _ => -\/( new BuilderException(s"Internal error: Bad value from buildDataRoe( $ctxt, ${dataSet.dataObjectSpec}, $generators ) "))
+        case _ => -\/(new BuilderException(s"Internal error: Bad value from buildDataRoe( $ctxt, ${dataSet.dataObjectSpec}, $generators ) "))
       }
     }
   }
@@ -82,6 +82,7 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
 
   /**
     * Internal recursive function for generating values for the specified dataSetSpec
+    *
     * @param ctxt
     * @param dataSetSpec
     * @param dataRow
@@ -89,9 +90,9 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     * @return
     */
   @tailrec private def generateRow(ctxt: BuilderContext,
-                  dataSetSpec: IDataSetSpec,
-                  dataRow: DataRow,
-                  generators: Seq[(IDataField, FieldGenerator)]) : BuilderException \/ DataRow = {
+                                   dataSetSpec: IDataSetSpec,
+                                   dataRow: DataRow,
+                                   generators: Seq[(IDataField, FieldGenerator)]): BuilderException \/ DataRow = {
 
     generators match {
       /// Handle base case
@@ -104,9 +105,9 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
         val fg = h._2
         // generate the value
         fg.generate(ctxt, dataRow, df, dataSetSpec.name) match {
-            /// if we hit an error return it
+          /// if we hit an error return it
           case -\/(err) => -\/(err)
-            /// if we generated a value then lets do the next one
+          /// if we generated a value then lets do the next one
           case \/-(generatedValue) => generateRow(ctxt, dataSetSpec, dataRow + generatedValue, t)
         }
       }
@@ -141,7 +142,7 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
       val dataField: IDataField = r._1
       r._2 match {
         case -\/(e) => (e :: acc._1, acc._2)
-        case \/-(fg) => (acc._1, (dataField -> fg) :: acc._2 )
+        case \/-(fg) => (acc._1, (dataField -> fg) :: acc._2)
       }
     }
     ) match {
@@ -158,8 +159,7 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     * @param dataSetSpec
     * @param dataField
     * @param fieldGenConstraints
-    *
-    * @return  BuilderException \/ FieldGenerator
+    * @return BuilderException \/ FieldGenerator
     */
   def selectGenerator(dataSetSpec: IDataSetSpec,
                       dataField: IDataField,
