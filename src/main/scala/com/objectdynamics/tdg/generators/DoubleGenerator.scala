@@ -116,7 +116,7 @@ class DoubleGenerator extends BaseGenerator("RandomDouble") {
         val max = gc.list.size-1
         // gc.last should contain the last index used
         val idx = if (gc.last.toInt >= max) 0 else gc.last.toInt + 1
-        val value = IntValue(gc.list(idx).toInt, dataField.name)
+        val value = DoubleValue(gc.list(idx), dataField.name)
         (gc.copy(last = (idx)), \/-(value))
       }
       case ListStrategy => {

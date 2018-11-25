@@ -1,6 +1,6 @@
 package com.objectdynamics.tdg.generators
 
-import com.objectdynamics.tdg.spec.datatypes.{DataType, ScalaInt, ScalaString, UnknownType}
+import com.objectdynamics.tdg.spec.datatypes._
 
 /**
   * holds ONE generated field
@@ -19,6 +19,17 @@ sealed trait GeneratedValue {
 
 case class IntValue(num: Int, name: String) extends GeneratedValue {
   override def dataType =  ScalaInt()
+  override def value: String = num.toString
+}
+
+
+case class FloatValue(num: Double, name: String) extends GeneratedValue {
+  override def dataType =  ScalaFloat()
+  override def value: String = num.toString
+}
+
+case class DoubleValue(num: Double, name: String) extends GeneratedValue {
+  override def dataType =  ScalaDouble()
   override def value: String = num.toString
 }
 
