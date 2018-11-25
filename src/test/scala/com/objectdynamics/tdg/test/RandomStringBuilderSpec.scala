@@ -2,7 +2,7 @@ package com.objectdynamics.tdg.test
 
 import com.objectdynamics.tdg.builder.model.DataRow
 import com.objectdynamics.tdg.builder.{BuildRequest, DefaultBuilder}
-import com.objectdynamics.tdg.generators.valueFunction
+import com.objectdynamics.tdg.generators.ValueExtractor
 import com.objectdynamics.tdg.parser.model.{BetweenSpec, FieldGenConstraints, InSpec, TreeRequest}
 import com.objectdynamics.tdg.schema.TestDataSchema
 import com.objectdynamics.tdg.spec.datatypes.{ScalaInt, ScalaString}
@@ -17,6 +17,8 @@ import scalaz.{-\/, \/-}
   */
 class RandomStringBuilderSpec extends FlatSpec with Matchers {
 
+  implicit val valueExtractorStr: ValueExtractor[String] = ValueExtractor.StringExtractor
+  implicit val valueExtractorInt: ValueExtractor[Int] = ValueExtractor.IntExtractor
 
   "A Builder" should "build 50000 values with name from list and age between 20 and 80" in {
     val n = 50000
@@ -35,14 +37,14 @@ class RandomStringBuilderSpec extends FlatSpec with Matchers {
     )
     val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
     val testDataSchema = TestDataSchema("test", dataSetSpecs)
-    println(s"TestDataSchema: $testDataSchema")
-    println (s"Person: ${testDataSchema.dssMap("person")}" )
+   // println(s"TestDataSchema: $testDataSchema")
+   // println (s"Person: ${testDataSchema.dssMap("person")}" )
     new DefaultBuilder().build(bldrReq, testDataSchema) match {
       case -\/(err) => println(s"Error:  $err");fail()
       case \/-(testData) => {
         val rows: List[DataRow] = testData.dataSetList.head.rows
         rows.forall((dr) => {
-          checkValueIn(dr, "name", names) &&
+          checkValueInStr(dr, "name", names) &&
             checkValueBetween(dr, "age", lo, hi)
         }) should be(true)
       }
@@ -67,37 +69,34 @@ class RandomStringBuilderSpec extends FlatSpec with Matchers {
     )
     val dataSetSpecs = Map("person" -> DataSetSpec( "person", fields))
     val testDataSchema = TestDataSchema("test", dataSetSpecs)
-    println(s"TestDataSchema: $testDataSchema")
-    println (s"Person: ${testDataSchema.dssMap("person")}" )
+    //println(s"TestDataSchema: $testDataSchema")
+    //println (s"Person: ${testDataSchema.dssMap("person")}" )
     new DefaultBuilder().build(bldrReq, testDataSchema) match {
       case -\/(err) => println(s"Error:  $err");fail()
       case \/-(testData) => {
         val rows: List[DataRow] = testData.dataSetList.head.rows
         rows.forall((dr) => {
-          checkValueIn(dr, "name", names) &&
+          checkValueInStr(dr, "name", names) &&
             checkValueBetween(dr, "age", lo, hi)
         }) should be(true)
 
         case class Person(name:String, age:Int)
         val ll = new ListBuffer[Person]
         rows.foreach((dr) => {
-          val name = new valueFunction(dr.data("name") )().get
-          val age = new valueFunction(dr.data("age") )().get
+          val name = dr.data("name").as[String]
+          val age = dr.data("age").as[Int]
             ll.append(Person (
               name.asInstanceOf[String],
               age.asInstanceOf[Int]))
-        })
-        ll.toList.foreach((p) => {
-          println(s"Person: $p")
         })
       }
     }
   }
 
   def checkValueBetween(row: DataRow, str: String, low: Int, hi: Int): Boolean = {
-    val x = new valueFunction(row.data(str) )()
+    val x = row.data(str).as[Int]
     x match {
-      case Some(n:Int) => {
+      case n:Int => {
 //        println(s"$str: $n")
         n  <= hi && n  >= low
       }
@@ -109,10 +108,25 @@ class RandomStringBuilderSpec extends FlatSpec with Matchers {
   }
 
 
-  def checkValueIn[T](row: DataRow, fieldName: String, values: List[T]): Boolean = {
-    val x = new valueFunction(row.data(fieldName) )()
+  def checkValueIn(row: DataRow, fieldName: String, values: List[Int]): Boolean = {
+    val x = row.data(fieldName).as[Int](valueExtractorInt)
     x match {
-          case Some(n:T) => {
+          case n:Int => {
+  //          println(s"$fieldName: $n")
+            values.contains(n)
+          }
+          case _ => {
+            println(s"Error: $fieldName: $x")
+            false
+          }
+    }
+
+  }
+
+  def checkValueInStr(row: DataRow, fieldName: String, values: List[String]): Boolean = {
+    val x = row.data(fieldName).as[String]
+    x match {
+          case n:String => {
   //          println(s"$fieldName: $n")
             values.contains(n)
           }

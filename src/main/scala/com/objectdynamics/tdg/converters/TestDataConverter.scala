@@ -6,7 +6,7 @@ import com.objectdynamics.tdg.model.DefaultTestData
 /**
   * Created by lee on 11/13/18.
   */
-trait TestDataConverter[T] {
+sealed trait TestDataConverter[T] {
   def apply(testData: DefaultTestData): T
 }
 
@@ -36,6 +36,7 @@ class CSVDataConverter extends TestDataConverter[Map[String, List[String]]] {
 
   def fieldNames(dataSetSpec: IDataSetSpec): List[String] = dataSetSpec.fields.map(df => df.name)
 }
+
 //
 //class StreamDataConverter extends TestDataConverter[Stream[Map[String, _]]] {
 //  def apply[T](testData: DefaultTestData): T = {}
