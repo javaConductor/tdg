@@ -11,6 +11,7 @@ import scalaz.\/
   */
 trait FieldGenerator {
   type I
+
   def init(ctxt: BuilderContext, dataField: IDataField, dataSetName: String,
            nRows: Long, fldGenConstraints: FieldGenConstraints): Unit
 
@@ -23,6 +24,7 @@ trait FieldGenerator {
 abstract class BaseGenerator(val name: String) extends FieldGenerator {
   def prefix(name: String, dataSetName: String, fieldName: String) = s"$name:$dataSetName:$fieldName"
 }
+
 object FieldGenerator {
 
 }

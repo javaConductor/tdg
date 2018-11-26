@@ -51,8 +51,8 @@ object Default extends LowerPriorityImplicits {
 }
 
 sealed trait TypeDef {
-  val name: String
   type ScalaType
+  val name: String
 }
 
 sealed trait DataType extends TypeDef {
@@ -129,17 +129,18 @@ object DataType {
     classOf[BigDecimal].getName -> ScalaBigDecimal,
     classOf[DateTime].getName -> ScalaDateTime,
     classOf[Short].getName -> ScalaShort)
-  def isSimpleClass[T](c:Class[T]) = simpleTypes(c.getName)
+
+  def isSimpleClass[T](c: Class[T]) = simpleTypes(c.getName)
 
   def fromClass[T](c: Class[T]): Option[DataType] = {
-    if ( simpleTypes.keySet.contains( c.getName ))
+    if (simpleTypes.keySet.contains(c.getName))
       fromString(c.getName)
     else
       Some(ScalaType[T](c))
   }
 
-    def fromString(dtype: String, size: Int=0): Option[DataType] = {
-      //TODO fix this
-      simpleTypes(dtype).asInstanceOf[Option[DataType]]
+  def fromString(dtype: String, size: Int = 0): Option[DataType] = {
+    //TODO fix this
+    simpleTypes(dtype).asInstanceOf[Option[DataType]]
   }
 }

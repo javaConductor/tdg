@@ -79,41 +79,6 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
     }
   }
 
-
-  /**
-    * Internal recursive function for generating values for the specified dataSetSpec
-    *
-    * @param ctxt
-    * @param dataSetSpec
-    * @param dataRow
-    * @param generators Generators to use for each field
-    * @return
-    */
-  @tailrec private def generateRow(ctxt: BuilderContext,
-                                   dataSetSpec: IDataSetSpec,
-                                   dataRow: DataRow,
-                                   generators: Seq[(IDataField, FieldGenerator)]): BuilderException \/ DataRow = {
-
-    generators match {
-      /// Handle base case
-      case Nil => {
-        \/-(dataRow)
-      }
-      /// dataRow is not complete so we generate the next value
-      case h :: t => {
-        val df = h._1
-        val fg = h._2
-        // generate the value
-        fg.generate(ctxt, dataRow, df, dataSetSpec.name) match {
-          /// if we hit an error return it
-          case -\/(err) => -\/(err)
-          /// if we generated a value then lets do the next one
-          case \/-(generatedValue) => generateRow(ctxt, dataSetSpec, dataRow + generatedValue, t)
-        }
-      }
-    }
-  }
-
   def buildDataRow(ctxt: BuilderContext,
                    dataSetSpec: IDataSetSpec,
                    generators: Seq[(IDataField, FieldGenerator)]): BuilderException \/ DataRow =
@@ -168,7 +133,41 @@ class DefaultDataSetBuilder() extends DataSetBuilder {
       gen.canGenerate(dataField, fieldGenConstraints)
     } match {
       case Some(fg: FieldGenerator) => \/-(fg)
-      case None => -\/(new BuilderException(s"No Generator for dataType ${dataField.dataType.name} constraints $fieldGenConstraints"))
+      case None => -\/(new BuilderException(s"No Generator for dataType ${dataField.dataType.name} for ${dataSetSpec.name}.${dataField.name} field constraints $fieldGenConstraints"))
+    }
+  }
+
+  /**
+    * Internal recursive function for generating values for the specified dataSetSpec
+    *
+    * @param ctxt
+    * @param dataSetSpec
+    * @param dataRow
+    * @param generators Generators to use for each field
+    * @return
+    */
+  @tailrec private def generateRow(ctxt: BuilderContext,
+                                   dataSetSpec: IDataSetSpec,
+                                   dataRow: DataRow,
+                                   generators: Seq[(IDataField, FieldGenerator)]): BuilderException \/ DataRow = {
+
+    generators match {
+      /// Handle base case
+      case Nil => {
+        \/-(dataRow)
+      }
+      /// dataRow is not complete so we generate the next value
+      case h :: t => {
+        val df = h._1
+        val fg = h._2
+        // generate the value
+        fg.generate(ctxt, dataRow, df, dataSetSpec.name) match {
+          /// if we hit an error return it
+          case -\/(err) => -\/(err)
+          /// if we generated a value then lets do the next one
+          case \/-(generatedValue) => generateRow(ctxt, dataSetSpec, dataRow + generatedValue, t)
+        }
+      }
     }
   }
 }

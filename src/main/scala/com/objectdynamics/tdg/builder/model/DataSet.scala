@@ -26,11 +26,12 @@ trait DataSet[R >: DataRow, S] {
 trait IDefaultDataSet extends DataSet[DataRow, IDataSetSpec]
 
 
-object DefaultDataSet  {
+object DefaultDataSet {
 
   def apply(dataObjSpec: IDataSetSpec,
             dataRows: List[DataRow]): DefaultDataSet = new DefaultDataSet(dataObjSpec, dataRows)
 }
+
 /**
   * This class represents a Table in a RDBS or Collection in NO-SQL Data Store.
   */
@@ -42,11 +43,11 @@ class DefaultDataSet(val dataObjSpec: IDataSetSpec,
 
   override def dataObjectSpec = dataObjSpec
 
-  def +(dr: DataRow):DefaultDataSet = DefaultDataSet( dataObjectSpec, dr :: rows)
-
-  def rows: List[DataRow] = dataRows
+  def +(dr: DataRow): DefaultDataSet = DefaultDataSet(dataObjectSpec, dr :: rows)
 
   def +(r: List[DataRow]): IDefaultDataSet = DefaultDataSet(dataObjectSpec, r ::: rows)
+
+  def rows: List[DataRow] = dataRows
 
   def row(i: Int): Option[DataRow] = {
 

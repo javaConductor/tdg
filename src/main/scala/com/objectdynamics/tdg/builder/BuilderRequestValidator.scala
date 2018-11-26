@@ -18,6 +18,7 @@ import com.objectdynamics.tdg.parser.model.TreeRequest
 trait BuilderRequestValidator {
 
   def validateBuildRequest(schema: ITestDataSchema, request: BuildRequest): Boolean
+
   def validateTreeRequest(schema: ITestDataSchema,
                           t: TreeRequest): Boolean
 
@@ -25,7 +26,7 @@ trait BuilderRequestValidator {
                           t: TreeRequest): Boolean
 
   def validateCountVsConstraints(dss: IDataSetSpec,
-                                t: TreeRequest): Boolean
+                                 t: TreeRequest): Boolean
 }
 
 object BuilderRequestValidator extends BuilderRequestValidator {
@@ -48,7 +49,7 @@ object BuilderRequestValidator extends BuilderRequestValidator {
 
 
   def validateCountVsConstraints(dss: IDataSetSpec,
-                                t: TreeRequest): Boolean = {
+                                 t: TreeRequest): Boolean = {
     true
   }
 

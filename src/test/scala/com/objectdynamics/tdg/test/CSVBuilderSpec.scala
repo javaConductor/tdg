@@ -9,7 +9,7 @@ import com.objectdynamics.tdg.parser.model._
 import com.objectdynamics.tdg.schema.TestDataSchema
 import com.objectdynamics.tdg.spec.datatypes.{ScalaFloat, ScalaInt, ScalaString}
 import com.objectdynamics.tdg.spec.{DataField, DataSetSpec}
-import com.objectdynamics.tdg.targets.CSVFileDataTarget
+import com.objectdynamics.tdg.targets.{CSVFileDataTarget, WriteManifest}
 import org.scalatest._
 
 import scalaz.{-\/, \/-}
@@ -54,12 +54,10 @@ class CSVBuilderSpec extends FlatSpec with Matchers {
 
         val target: CSVFileDataTarget = new CSVFileDataTarget(outputFolder)
         val wm = target.store(testData)
+        checkCsvFile(wm, outputFolder, DATA_SET_NAME , 50000)
         val outputFilename = outputFolder + "/" + DATA_SET_NAME + ".csv"
-        wm.dataSetList.head.outputFileName should be(outputFilename)
-        wm.dataSetList.head.numRows should be(50000)
         new File(outputFilename).exists() should be(true)
         new File(outputFilename).delete()
-
       }
     }
   }
@@ -121,14 +119,24 @@ class CSVBuilderSpec extends FlatSpec with Matchers {
 
         val target: CSVFileDataTarget = new CSVFileDataTarget(outputFolder)
         val wm = target.store(testData)
-        val outputFilename = outputFolder + "/" + DATA_SET_NAME + ".csv"
-        wm.dataSetList.head.outputFileName should be(outputFilename)
-        wm.dataSetList.head.numRows should be(50000)
-        new File(outputFilename).exists() should be(true)
-        //new File(outputFilename).delete()
+        checkCsvFile(wm, outputFolder, DATA_SET_NAME, n)
+        checkCsvFile(wm, outputFolder, DATA_SET_NAME_2, n)
 
+        new File(outputFolder, DATA_SET_NAME+".csv").delete()
+        new File(outputFolder, DATA_SET_NAME_2+".csv").delete()
       }
     }
+  }
+
+  def checkCsvFile(wm:WriteManifest, folderName:String, dsName:String , rowCount:Int) = {
+    val outputFilename = folderName + "/" + dsName + ".csv"
+    // find ds
+    wm.dataSetList.find(dsm => dsm.outputFileName == outputFilename) match {
+      case Some(dsm) => {
+       dsm.numRows should be(rowCount) }
+    }
+    new File(outputFilename).exists() should be(true)
+
   }
 
   def checkValueBetween(row: DataRow, str: String, low: Int, hi: Int): Boolean = {

@@ -13,6 +13,8 @@ trait IDataField /*[+D <: IDataTypeObject ]*/ {
   val dataType: DataType
 
   def unique: Boolean = false
+
   def prefix: Option[String] = None
+
   def suffix: Option[String] = None
 }

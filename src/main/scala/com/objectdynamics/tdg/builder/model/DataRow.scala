@@ -2,6 +2,7 @@ package com.objectdynamics.tdg.builder.model
 
 import com.objectdynamics.tdg.generators._
 import com.objectdynamics.tdg.util.{ListHelper, LogContributor}
+
 /*
  * Created by IntelliJ IDEA.
  * User: Lee
@@ -10,14 +11,15 @@ import com.objectdynamics.tdg.util.{ListHelper, LogContributor}
  */
 trait DataRow {
 
-  def dss: IDataSetSpec
   val data: Map[String, GeneratedValue]
+
+  def dss: IDataSetSpec
   //def values[U]: Map[String, GeneratedValue[U,TypeDef]]
 
   def value(fldName: String): Option[GeneratedValue] = {
     val f: String = fldName
     data(f) match {
-      case (generatedValue:GeneratedValue) => Some(generatedValue)
+      case (generatedValue: GeneratedValue) => Some(generatedValue)
       case _ => None
     }
   }
@@ -52,16 +54,11 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
     this.copy(dataSetSpec = dss, data = this.data + (fldValue.name -> fldValue))
   }
 
-  def complete: Boolean = isComplete
-
-  def hasFields(flds: Set[String]): Boolean = {
-    flds.forall {
-      data.get(_) match {
-        case Some(x) => true;
-        case None => false;
-      }
-    }
+  def dss: IDataSetSpec = {
+    dataSetSpec
   }
+
+  def complete: Boolean = isComplete
 
   def definesFields(flds: Set[String]): Boolean = flds.size == (fields intersect flds.toList).length;
 
@@ -70,25 +67,12 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
     _.name
   }
 
-  //val dataField:DataField;
-  override def value(field: String): Option[GeneratedValue] = data.get(field)
-
   def withFields(flds: Set[String]): DefaultDataRow = {
     this.copy(
       dataSetSpec = this.dataSetSpec,
       data = fieldSet(flds)
     )
-    DefaultDataRow ( dataSetSpec, this.objectId, fieldSet(flds) )
-  }
-  def dss: IDataSetSpec = {
-    dataSetSpec
-  }
-
-  def fieldSet(flds: Set[String]): Map[String, GeneratedValue] = {
-    hasFields(flds) match {
-      case true => (flds map { fldname: String => (fldname -> value(fldname).get) }) toMap
-      case false => Map.empty
-    }
+    DefaultDataRow(dataSetSpec, this.objectId, fieldSet(flds))
   }
 
   def withDataRenamedTo(fmap: Map[String, String]): DataRow = {
@@ -101,6 +85,25 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
       }
     }.toMap)
   }
+
+  def fieldSet(flds: Set[String]): Map[String, GeneratedValue] = {
+    hasFields(flds) match {
+      case true => (flds map { fldname: String => (fldname -> value(fldname).get) }) toMap
+      case false => Map.empty
+    }
+  }
+
+  def hasFields(flds: Set[String]): Boolean = {
+    flds.forall {
+      data.get(_) match {
+        case Some(x) => true;
+        case None => false;
+      }
+    }
+  }
+
+  //val dataField:DataField;
+  override def value(field: String): Option[GeneratedValue] = data.get(field)
 
   override def toString: String = "DataRow(" + dss.name + ")" + (".") + id
 

@@ -11,7 +11,7 @@ import com.objectdynamics.tdg.model.DefaultTestData
   * Created by lee on 11/24/18.
   */
 
-case class DataSetManifest(outputFileName: String, fileSize: Long, numRows:Long, format: String, when: LocalDateTime);
+case class DataSetManifest(outputFileName: String, fileSize: Long, numRows: Long, format: String, when: LocalDateTime);
 
 case class WriteManifest(dataSetList: Seq[DataSetManifest])
 
@@ -43,8 +43,8 @@ class CSVFileDataTarget(folderName: String) extends DataTarget[CSVDataConverter]
 
   def store(folder: File, dataSet: DefaultDataSet): DataSetManifest = {
 
-    val f = new File(folder, dataSet.name+".csv")
-    if(!f.exists())
+    val f = new File(folder, dataSet.name + ".csv")
+    if (!f.exists())
       f.createNewFile()
     val nRows = dataSet.dataRows.size
 
@@ -53,9 +53,12 @@ class CSVFileDataTarget(folderName: String) extends DataTarget[CSVDataConverter]
 
     /// open file
     val fw = new FileWriter(f)
-    textRows.foreach( r => {fw.write(r); fw.append('\n') })
+    textRows.foreach(r => {
+      fw.write(r); fw.append('\n')
+    })
     fw.close()
-    DataSetManifest(f.getAbsolutePath, f.length(), nRows, "text/csv", LocalDateTime.now())  }
+    DataSetManifest(f.getAbsolutePath, f.length(), nRows, "text/csv", LocalDateTime.now())
+  }
 
 
 }
