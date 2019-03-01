@@ -6,9 +6,9 @@ import com.objectdynamics.tdg.builder.BuilderException
 import com.objectdynamics.tdg.builder.model.{DataRow, IDataField}
 import com.objectdynamics.tdg.parser.model._
 import com.objectdynamics.tdg.spec.datatypes.{ScalaDouble, ScalaFloat}
+import scalaz.{-\/, \/, \/-}
 
 import scala.util.Random
-import scalaz.{-\/, \/, \/-}
 
 /** ***********************************************************************************************
   *
@@ -143,4 +143,5 @@ class DoubleGenerator extends BaseGenerator("RandomDouble") {
   object GenContext {
     def instance: GenContext = GenContext(Double.NaN, Double.NaN, List.empty, Double.NaN, NoStrategy)
   }
+
 }

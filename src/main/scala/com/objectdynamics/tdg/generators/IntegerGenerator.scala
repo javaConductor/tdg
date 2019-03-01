@@ -6,9 +6,9 @@ import com.objectdynamics.tdg.builder.BuilderException
 import com.objectdynamics.tdg.builder.model.{DataRow, IDataField}
 import com.objectdynamics.tdg.parser.model._
 import com.objectdynamics.tdg.spec.datatypes.ScalaInt
+import scalaz.{-\/, \/, \/-}
 
 import scala.util.Random
-import scalaz.{-\/, \/, \/-}
 
 /** ***********************************************************************************************
   *
@@ -139,4 +139,5 @@ class IntegerGenerator extends BaseGenerator("RandomInteger") {
   object GenContext {
     def instance: GenContext = GenContext(BigInt(-1), BigInt(-1), List.empty, BigInt(-1), NoStrategy)
   }
+
 }

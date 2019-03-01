@@ -14,6 +14,7 @@ trait DataRow {
   val data: Map[String, GeneratedValue]
 
   def dss: IDataSetSpec
+
   //def values[U]: Map[String, GeneratedValue[U,TypeDef]]
 
   def value(fldName: String): Option[GeneratedValue] = {
@@ -54,10 +55,6 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
     this.copy(dataSetSpec = dss, data = this.data + (fldValue.name -> fldValue))
   }
 
-  def dss: IDataSetSpec = {
-    dataSetSpec
-  }
-
   def complete: Boolean = isComplete
 
   def definesFields(flds: Set[String]): Boolean = flds.size == (fields intersect flds.toList).length;
@@ -67,23 +64,16 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
     _.name
   }
 
+  def dss: IDataSetSpec = {
+    dataSetSpec
+  }
+
   def withFields(flds: Set[String]): DefaultDataRow = {
     this.copy(
       dataSetSpec = this.dataSetSpec,
       data = fieldSet(flds)
     )
     DefaultDataRow(dataSetSpec, this.objectId, fieldSet(flds))
-  }
-
-  def withDataRenamedTo(fmap: Map[String, String]): DataRow = {
-    val fields = fieldSet(fmap.keySet)
-    this.copy(data = fields.map {
-      (tpl) => {
-        val name = tpl._1
-        val gval = tpl._2
-        fmap.get(name).get -> gval
-      }
-    }.toMap)
   }
 
   def fieldSet(flds: Set[String]): Map[String, GeneratedValue] = {
@@ -104,6 +94,17 @@ case class DefaultDataRow(dataSetSpec: IDataSetSpec,
 
   //val dataField:DataField;
   override def value(field: String): Option[GeneratedValue] = data.get(field)
+
+  def withDataRenamedTo(fmap: Map[String, String]): DataRow = {
+    val fields = fieldSet(fmap.keySet)
+    this.copy(data = fields.map {
+      (tpl) => {
+        val name = tpl._1
+        val gval = tpl._2
+        fmap.get(name).get -> gval
+      }
+    }.toMap)
+  }
 
   override def toString: String = "DataRow(" + dss.name + ")" + (".") + id
 

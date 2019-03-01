@@ -54,7 +54,8 @@ class CSVFileDataTarget(folderName: String) extends DataTarget[CSVDataConverter]
     /// open file
     val fw = new FileWriter(f)
     textRows.foreach(r => {
-      fw.write(r); fw.append('\n')
+      fw.write(r);
+      fw.append('\n')
     })
     fw.close()
     DataSetManifest(f.getAbsolutePath, f.length(), nRows, "text/csv", LocalDateTime.now())

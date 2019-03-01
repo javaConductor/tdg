@@ -3,7 +3,6 @@ package com.objectdynamics.tdg.generators
 import com.objectdynamics.tdg.builder.BuilderException
 import com.objectdynamics.tdg.builder.model.{DataRow, IDataField}
 import com.objectdynamics.tdg.parser.model.FieldGenConstraints
-
 import scalaz.\/
 
 /**

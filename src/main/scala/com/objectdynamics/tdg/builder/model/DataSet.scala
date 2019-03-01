@@ -41,13 +41,9 @@ class DefaultDataSet(val dataObjSpec: IDataSetSpec,
 
   override def name = dataObjectSpec.name
 
-  override def dataObjectSpec = dataObjSpec
-
   def +(dr: DataRow): DefaultDataSet = DefaultDataSet(dataObjectSpec, dr :: rows)
 
   def +(r: List[DataRow]): IDefaultDataSet = DefaultDataSet(dataObjectSpec, r ::: rows)
-
-  def rows: List[DataRow] = dataRows
 
   def row(i: Int): Option[DataRow] = {
 
@@ -71,4 +67,8 @@ class DefaultDataSet(val dataObjSpec: IDataSetSpec,
        |
      """.stripMargin
   }
+
+  override def dataObjectSpec = dataObjSpec
+
+  def rows: List[DataRow] = dataRows
 }

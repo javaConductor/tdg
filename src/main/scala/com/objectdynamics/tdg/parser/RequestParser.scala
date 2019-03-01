@@ -46,8 +46,6 @@ object RequestParser extends JavaTokenParsers {
 
   }
 
-  def number = decimalNumber | wholeNumber | floatingPointNumber
-
   def literalValue: Parser[String] = {
     (stringLiteral | number | dateValue) ^^ { case x => x.toString }
   }
@@ -58,15 +56,17 @@ object RequestParser extends JavaTokenParsers {
 
   def value: Parser[String] = literalValue
 
+  def valueList = valueNumberList | valueStringList
+
   def valueNumberList: Parser[List[String]] = "(" ~ repsep(number, ",") ~ ")" ^^ {
     case "(" ~ lst ~ ")" => (lst)
   }
 
+  def number = decimalNumber | wholeNumber | floatingPointNumber
+
   def valueStringList: Parser[List[String]] = "(" ~ repsep(stringLiteral, ",") ~ ")" ^^ {
     case "(" ~ lst ~ ")" => (lst)
   }
-
-  def valueList = valueNumberList | valueStringList
 
   def eqSpec: Parser[FieldGenConstraint] = "eq" ~> value ^^ {
     case vList => EqSpec(vList)
@@ -79,6 +79,7 @@ object RequestParser extends JavaTokenParsers {
   def inStringSpec: Parser[FieldGenConstraint] = "in" ~> valueStringList ^^ {
     case vList => InSpec(vList.map(_.toString).map(_.replaceAll("^(['\"])(.*)\\1$", "$2")))
   }
+
   def inSpec: Parser[FieldGenConstraint] = inIntSpec | inStringSpec
 
   def betweenSpec: Parser[FieldGenConstraint] = betweenDtSpec | betweenNumberSpec
@@ -113,54 +114,54 @@ object RequestParser extends JavaTokenParsers {
 
  }
   */
-//  def request: Parser[BuildRequest] = "request" ~> nRows ~ dataSet ~ opt(includingClause) ~ opt(specificClause) ^^ {
-//    case cnt ~ dsName ~ includedDs ~ specifics =>
-//      val mainTreeReq = TreeRequest (dsName, cnt, Map.empty, Some(dsName), Some(dsName))
-//      val specf:List[TreeRequest] = specifics match {
-//        case Some(treeReqList: List[TreeRequest]) => mainTreeReq :: treeReqList
-//        case _ => List(mainTreeReq)
-//      }
-//      BuildRequest(specf.head, cnt, specf.tail)
-//
-//  }
+  //  def request: Parser[BuildRequest] = "request" ~> nRows ~ dataSet ~ opt(includingClause) ~ opt(specificClause) ^^ {
+  //    case cnt ~ dsName ~ includedDs ~ specifics =>
+  //      val mainTreeReq = TreeRequest (dsName, cnt, Map.empty, Some(dsName), Some(dsName))
+  //      val specf:List[TreeRequest] = specifics match {
+  //        case Some(treeReqList: List[TreeRequest]) => mainTreeReq :: treeReqList
+  //        case _ => List(mainTreeReq)
+  //      }
+  //      BuildRequest(specf.head, cnt, specf.tail)
+  //
+  //  }
 
   def builderRequest: Parser[BuildRequest] = {
-    "request" ~> treeRequest ^^ {(trq) => BuildRequest(trq.head, 0, trq.tail)}
+    "request" ~> treeRequest ^^ { (trq) => BuildRequest(trq.head, 0, trq.tail) }
   }
 
   def nRows: Parser[Int] = wholeNumber ^^ {
     case s => s.toInt
   }
 
-  def dataSet: Parser[String] = ident
+  // ^^ { case ds =>(ds)}
+  def includingClause = "including" ~> (singleInclude | multipleIncludes)
 
   def singleInclude: Parser[List[String]] = dataSet ^^ { case ds => List(ds) }
 
-  def multipleIncludes: Parser[List[String]] = "(" ~> repsep(dataSet, ",") <~ ")"
+  def dataSet: Parser[String] = ident
 
-  // ^^ { case ds =>(ds)}
-  def includingClause = "including" ~> (singleInclude | multipleIncludes)
+  def multipleIncludes: Parser[List[String]] = "(" ~> repsep(dataSet, ",") <~ ")"
 
   def specificClause: Parser[List[TreeRequest]] = "specific" ~ "(" ~> treeRequest <~ ")" ^^ (trq => trq)
 
   def singleTreeRequest: Parser[List[TreeRequest]] =
     dataSet ~ "(" ~ nRows ~ ")" ~ opt("unique") ~ opt(whereClause) ~ opt(withClause) ^^ {
-    case ds ~ "(" ~ rows ~ ")" ~ unique ~ conditions ~ subTrees =>
-      val uniq = unique match {
-        case Some(x) => true
-        case _ => false;
-      }
-      val strees = subTrees match {
-        case Some(tl: List[TreeRequest]) => tl
-        case _ => List[TreeRequest]();
-      }
-      val cnd = conditions match {
-        case Some(c: Map[String, FieldGenConstraints]) => c
-        case _ => Map[String, FieldGenConstraints]();
-      }
-      //TreeRequest()
-      List(TreeRequest(ds, rows, cnd, None, None, false));
-  }
+      case ds ~ "(" ~ rows ~ ")" ~ unique ~ conditions ~ subTrees =>
+        val uniq = unique match {
+          case Some(x) => true
+          case _ => false;
+        }
+        val strees = subTrees match {
+          case Some(tl: List[TreeRequest]) => tl
+          case _ => List[TreeRequest]();
+        }
+        val cnd = conditions match {
+          case Some(c: Map[String, FieldGenConstraints]) => c
+          case _ => Map[String, FieldGenConstraints]();
+        }
+        //TreeRequest()
+        List(TreeRequest(ds, rows, cnd, None, None, false));
+    }
 
   def multipleTreeRequests: Parser[List[TreeRequest]] = "(" ~> repsep(treeRequest, ",") <~ ")" ^^ {
     case List(trList) => trList

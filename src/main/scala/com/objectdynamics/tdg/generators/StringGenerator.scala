@@ -6,9 +6,9 @@ import com.objectdynamics.tdg.builder.BuilderException
 import com.objectdynamics.tdg.builder.model.{DataRow, IDataField}
 import com.objectdynamics.tdg.parser.model.{EachSpec, EqSpec, FieldGenConstraints, InSpec}
 import com.objectdynamics.tdg.spec.datatypes.ScalaString
+import scalaz.{-\/, \/, \/-}
 
 import scala.util.Random
-import scalaz.{-\/, \/, \/-}
 
 /** ***********************************************************************************************
   *
@@ -131,4 +131,5 @@ class StringGenerator extends BaseGenerator("StringGen") {
   object GenContext {
     def instance: GenContext = GenContext(List.empty, -1, NoStrategy)
   }
+
 }

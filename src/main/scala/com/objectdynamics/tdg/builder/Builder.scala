@@ -5,9 +5,9 @@ import com.objectdynamics.tdg.generators._
 import com.objectdynamics.tdg.model.{DefaultTestData, TestData}
 import com.objectdynamics.tdg.parser.model._
 import com.objectdynamics.tdg.schema.TestDataSchema
+import scalaz._
 
 import scala.collection.mutable
-import scalaz._
 
 /**
   * Created by lee on 7/25/17.

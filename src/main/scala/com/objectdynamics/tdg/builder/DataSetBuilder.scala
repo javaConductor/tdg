@@ -3,9 +3,9 @@ package com.objectdynamics.tdg.builder
 import com.objectdynamics.tdg.builder.model._
 import com.objectdynamics.tdg.generators.{BuilderContext, FieldGenerator, FieldGeneratorList}
 import com.objectdynamics.tdg.parser.model.{FieldGenConstraints, TreeRequest}
+import scalaz.{-\/, GlorifiedTuple, \/, \/-}
 
 import scala.annotation.tailrec
-import scalaz.{-\/, GlorifiedTuple, \/, \/-}
 
 /**
   * Created by lee on 8/6/17.
